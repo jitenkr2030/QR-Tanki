@@ -42,14 +42,14 @@ export async function POST(request: NextRequest) {
     // Calculate subscription details (Yearly Only)
     const planDetails = {
       BASIC: {
-        monthlyAmount: 399,
-        yearlyAmount: 4999,
-        cleaningFrequency: 1
+        monthlyAmount: 99,
+        yearlyAmount: 999,
+        cleaningFrequency: 2
       },
       PREMIUM: {
-        monthlyAmount: 599,
-        yearlyAmount: 5999,
-        cleaningFrequency: 1
+        monthlyAmount: 199,
+        yearlyAmount: 1999,
+        cleaningFrequency: 2
       }
     }
 

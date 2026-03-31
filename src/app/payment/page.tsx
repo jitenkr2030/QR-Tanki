@@ -140,7 +140,7 @@ function PaymentContent() {
       } else if (subscriptionId) {
         // Subscription payment
         const plan = billingCycle === 'monthly' ? 'BASIC' : 'BASIC' // Mock plan
-        const amount = billingCycle === 'monthly' ? 399 : 4999
+        const amount = billingCycle === 'monthly' ? 99 : 999
         
         const mockSubscription: Subscription = {
           id: subscriptionId,
@@ -150,7 +150,7 @@ function PaymentContent() {
           startDate: new Date().toISOString(),
           endDate: new Date(Date.now() + (billingCycle === 'monthly' ? 30 : 365) * 24 * 60 * 60 * 1000).toISOString(),
           isActive: false,
-          cleaningFrequency: 1
+          cleaningFrequency: 2
         }
         setSubscription(mockSubscription)
         setPaymentData(prev => ({

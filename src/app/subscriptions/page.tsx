@@ -109,33 +109,33 @@ export default function SubscriptionsPage() {
     const plans = {
       BASIC: {
         name: "Basic Plan",
-        monthlyPrice: 399,
-        yearlyPrice: 4999,
-        frequency: "12 cleanings/year",
+        monthlyPrice: 99,
+        yearlyPrice: 999,
+        frequency: "2 cleanings/year",
         features: [
-          "12 cleanings per year",
+          "2 cleanings per year",
           "Basic cleaning type",
           "Photo proof of service",
           "Email reminders",
           "Digital access to cleaning history",
-          "Save ₹790 per year"
+          "Save ₹180 per year"
         ],
         color: "blue"
       },
       PREMIUM: {
         name: "Premium Plan", 
-        monthlyPrice: 599,
-        yearlyPrice: 5999,
-        frequency: "12 cleanings/year",
+        monthlyPrice: 199,
+        yearlyPrice: 1999,
+        frequency: "2 cleanings/year",
         features: [
-          "12 cleanings per year",
+          "2 cleanings per year",
           "Deep cleaning included",
           "Water quality testing",
           "Priority customer support",
           "Digital certificate",
           "Advanced hygiene scoring",
           "SMS reminders",
-          "Save ₹1,189 per year"
+          "Save ₹389 per year"
         ],
         color: "purple"
       }
