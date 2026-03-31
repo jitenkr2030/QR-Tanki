@@ -1,0 +1,691 @@
+==========================================
+[2026-03-25 10:16:58] Starting: bun install
+==========================================
+[BUN] Installing dependencies...
+[0.79ms] ".env"
+bun install v1.3.10 (30e609e0)
+
++ @tailwindcss/postcss@4.1.18
++ @types/react@19.2.8
++ @types/react-dom@19.2.3
++ bun-types@1.3.6
++ eslint@9.39.2
++ eslint-config-next@16.1.3
++ tailwindcss@4.1.18
++ tw-animate-css@1.4.0
++ typescript@5.9.3
++ @dnd-kit/core@6.3.1
++ @dnd-kit/sortable@10.0.0
++ @dnd-kit/utilities@3.2.2
++ @hookform/resolvers@5.2.2
++ @mdxeditor/editor@3.52.3
++ @prisma/client@6.19.2
++ @radix-ui/react-accordion@1.2.12
++ @radix-ui/react-alert-dialog@1.1.15
++ @radix-ui/react-aspect-ratio@1.1.8
++ @radix-ui/react-avatar@1.1.11
++ @radix-ui/react-checkbox@1.3.3
++ @radix-ui/react-collapsible@1.1.12
++ @radix-ui/react-context-menu@2.2.16
++ @radix-ui/react-dialog@1.1.15
++ @radix-ui/react-dropdown-menu@2.1.16
++ @radix-ui/react-hover-card@1.1.15
++ @radix-ui/react-label@2.1.8
++ @radix-ui/react-menubar@1.1.16
++ @radix-ui/react-navigation-menu@1.2.14
++ @radix-ui/react-popover@1.1.15
++ @radix-ui/react-progress@1.1.8
++ @radix-ui/react-radio-group@1.3.8
++ @radix-ui/react-scroll-area@1.2.10
++ @radix-ui/react-select@2.2.6
++ @radix-ui/react-separator@1.1.8
++ @radix-ui/react-slider@1.3.6
++ @radix-ui/react-slot@1.2.4
++ @radix-ui/react-switch@1.2.6
++ @radix-ui/react-tabs@1.1.13
++ @radix-ui/react-toast@1.2.15
++ @radix-ui/react-toggle@1.1.10
++ @radix-ui/react-toggle-group@1.1.11
++ @radix-ui/react-tooltip@1.2.8
++ @reactuses/core@6.1.9
++ @tanstack/react-query@5.90.19
++ @tanstack/react-table@8.21.3
++ class-variance-authority@0.7.1
++ clsx@2.1.1
++ cmdk@1.1.1
++ date-fns@4.1.0
++ embla-carousel-react@8.6.0
++ framer-motion@12.26.2
++ input-otp@1.4.2
++ lucide-react@0.525.0
++ next@16.1.3
++ next-auth@4.24.13
++ next-intl@4.7.0
++ next-themes@0.4.6
++ prisma@6.19.2
++ react@19.2.3
++ react-day-picker@9.13.0
++ react-dom@19.2.3
++ react-hook-form@7.71.1
++ react-markdown@10.1.0
++ react-resizable-panels@3.0.6
++ react-syntax-highlighter@15.6.6
++ recharts@2.15.4
++ sharp@0.34.5
++ sonner@2.0.7
++ tailwind-merge@3.4.0
++ tailwindcss-animate@1.0.7
++ uuid@11.1.0
++ vaul@1.1.2
++ z-ai-web-dev-sdk@0.0.17
++ zod@4.3.5
++ zustand@5.0.10
+
+827 packages installed [5.04s]
+==========================================
+[2026-03-25 10:17:03] Completed: bun install
+[LOG] Step: bun install | Duration: 5s
+==========================================
+
+==========================================
+[2026-03-25 10:17:03] Starting: bun run db:push
+==========================================
+[BUN] Setting up database...
+$ prisma db push
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": SQLite database "custom.db" at "file:/home/z/my-project/db/custom.db"
+
+SQLite database custom.db created at file:/home/z/my-project/db/custom.db
+
+🚀  Your database is now in sync with your Prisma schema. Done in 8ms
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.2) to ./node_modules/@prisma/client in 44ms
+┌─────────────────────────────────────────────────────────┐
+│  Update available 6.19.2 -> 7.5.0                       │
+│                                                         │
+│  This is a major update - please follow the guide at    │
+│  https://pris.ly/d/major-version-upgrade                │
+│                                                         │
+│  Run the following to update                            │
+│    npm i --save-dev prisma@latest                       │
+│    npm i @prisma/client@latest                          │
+└─────────────────────────────────────────────────────────┘
+
+==========================================
+[2026-03-25 10:17:04] Completed: bun run db:push
+[LOG] Step: bun run db:push | Duration: 1s
+==========================================
+
+==========================================
+[2026-03-25 10:17:04] Starting: Starting Next.js dev server
+==========================================
+[BUN] Starting development server...
+==========================================
+[2026-03-25 10:17:04] Completed: Starting Next.js dev server
+[LOG] Step: Starting Next.js dev server | Duration: 0s
+==========================================
+
+==========================================
+$ next dev -p 3000 2>&1 | tee dev.log
+[2026-03-25 10:17:04] Starting: Waiting for Next.js dev server
+==========================================
+Waiting for Next.js dev server to be ready on localhost:3000...
+Attempt 1/60: Next.js dev server not ready yet, waiting...
+▲ Next.js 16.1.3 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://21.0.4.34:3000
+- Environments: .env
+
+✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+
+  We detected TypeScript in your project and reconfigured your tsconfig.json file for you.
+  The following suggested values were added to your tsconfig.json. These values can be changed to fit your project's needs:
+
+  	- include was updated to add '.next/dev/types/**/*.ts'
+
+  The following mandatory changes were made to your tsconfig.json:
+
+  	- jsx was set to react-jsx (next.js uses the React automatic runtime)
+
+✓ Ready in 569ms
+ GET / 200 in 2.0s (compile: 1926ms, render: 123ms)
+Next.js dev server is ready!
+==========================================
+[2026-03-25 10:17:07] Completed: Waiting for Next.js dev server
+[LOG] Step: Waiting for Next.js dev server | Duration: 3s
+==========================================
+
+==========================================
+[2026-03-25 10:17:07] Starting: Health check
+==========================================
+ GET / 200 in 1524ms (compile: 1348ms, render: 176ms)
+[BUN] Performing health check...
+ GET / 200 in 22ms (compile: 1870µs, render: 20ms)
+[BUN] Health check passed
+==========================================
+[2026-03-25 10:17:07] Completed: Health check
+[LOG] Step: Health check | Duration: 0s
+==========================================
+
+==========================================
+[2026-03-25 10:17:07] Starting: Starting mini-services
+==========================================
+Found mini-services directory, scanning for sub-services...
+Mini-services startup completed. Started 0 service(s).
+==========================================
+[2026-03-25 10:17:07] Completed: Starting mini-services
+[LOG] Step: Starting mini-services | Duration: 0s
+==========================================
+
+Next.js dev server is running in background (PID: 659).
+Use 'kill 659' to stop it.
+ GET / 200 in 36ms (compile: 3ms, render: 32ms)
+✓ Compiled in 166ms
+✓ Compiled in 102ms
+✓ Compiled in 98ms
+✓ Compiled in 146ms
+==========================================
+<<<<<<< HEAD
+[2026-03-26 01:57:13] Starting: bun install
+=======
+[2026-03-26 19:57:12] Starting: bun install
+>>>>>>> 9031fb4 (📱 Complete Offline Capabilities Implementation - True PWA Experience)
+==========================================
+[BUN] Installing dependencies...
+[0.10ms] ".env"
+bun install v1.3.10 (30e609e0)
+
+<<<<<<< HEAD
+Checked 872 installs across 941 packages (no changes) [61.00ms]
+==========================================
+[2026-03-26 01:57:13] Completed: bun install
+=======
+Checked 872 installs across 941 packages (no changes) [56.00ms]
+==========================================
+[2026-03-26 19:57:12] Completed: bun install
+>>>>>>> 9031fb4 (📱 Complete Offline Capabilities Implementation - True PWA Experience)
+[LOG] Step: bun install | Duration: 0s
+==========================================
+
+==========================================
+<<<<<<< HEAD
+[2026-03-26 01:57:13] Starting: bun run db:push
+=======
+[2026-03-26 19:57:12] Starting: bun run db:push
+>>>>>>> 9031fb4 (📱 Complete Offline Capabilities Implementation - True PWA Experience)
+==========================================
+[BUN] Setting up database...
+$ prisma db push
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": SQLite database "custom.db" at "file:/home/z/my-project/db/custom.db"
+
+The database is already in sync with the Prisma schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+[2K[1A[2K[GRunning generate... - Prisma Client
+<<<<<<< HEAD
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.2) to ./node_modules/@prisma/client in 231ms
+
+==========================================
+[2026-03-26 01:57:15] Completed: bun run db:push
+=======
+[2K[1A[2K[G✔ Generated Prisma Client (v6.19.2) to ./node_modules/@prisma/client in 172ms
+┌─────────────────────────────────────────────────────────┐
+│  Update available 6.19.2 -> 7.5.0                       │
+│                                                         │
+│  This is a major update - please follow the guide at    │
+│  https://pris.ly/d/major-version-upgrade                │
+│                                                         │
+│  Run the following to update                            │
+│    npm i --save-dev prisma@latest                       │
+│    npm i @prisma/client@latest                          │
+└─────────────────────────────────────────────────────────┘
+
+==========================================
+[2026-03-26 19:57:14] Completed: bun run db:push
+>>>>>>> 9031fb4 (📱 Complete Offline Capabilities Implementation - True PWA Experience)
+[LOG] Step: bun run db:push | Duration: 2s
+==========================================
+
+==========================================
+<<<<<<< HEAD
+[2026-03-26 01:57:15] Starting: Starting Next.js dev server
+=======
+[2026-03-26 19:57:14] Starting: Starting Next.js dev server
+>>>>>>> 9031fb4 (📱 Complete Offline Capabilities Implementation - True PWA Experience)
+==========================================
+[BUN] Starting development server...
+==========================================
+$ next dev -p 3000 2>&1 | tee dev.log
+<<<<<<< HEAD
+[2026-03-26 01:57:15] Completed: Starting Next.js dev server
+=======
+[2026-03-26 19:57:14] Completed: Starting Next.js dev server
+>>>>>>> 9031fb4 (📱 Complete Offline Capabilities Implementation - True PWA Experience)
+[LOG] Step: Starting Next.js dev server | Duration: 0s
+==========================================
+
+==========================================
+<<<<<<< HEAD
+[2026-03-26 01:57:15] Starting: Waiting for Next.js dev server
+=======
+[2026-03-26 19:57:14] Starting: Waiting for Next.js dev server
+>>>>>>> 9031fb4 (📱 Complete Offline Capabilities Implementation - True PWA Experience)
+==========================================
+Waiting for Next.js dev server to be ready on localhost:3000...
+Attempt 1/60: Next.js dev server not ready yet, waiting...
+▲ Next.js 16.1.3 (Turbopack)
+- Local:         http://localhost:3000
+<<<<<<< HEAD
+- Network:       http://21.0.15.134:3000
+=======
+- Network:       http://21.0.2.60:3000
+>>>>>>> 9031fb4 (📱 Complete Offline Capabilities Implementation - True PWA Experience)
+- Environments: .env
+
+✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+<<<<<<< HEAD
+✓ Ready in 1048ms
+=======
+✓ Ready in 1058ms
+>>>>>>> 9031fb4 (📱 Complete Offline Capabilities Implementation - True PWA Experience)
+○ Compiling / ...
+⚠ Unsupported metadata themeColor is configured in metadata export in /. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+⚠ Unsupported metadata colorScheme is configured in metadata export in /. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+⚠ Unsupported metadata themeColor is configured in metadata export in /. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+⚠ Unsupported metadata colorScheme is configured in metadata export in /. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+<<<<<<< HEAD
+ GET / 200 in 3.4s (compile: 3.1s, render: 236ms)
+ GET / 200 in 3.5s (compile: 3.3s, render: 192ms)
+Next.js dev server is ready!
+==========================================
+[2026-03-26 01:57:20] Completed: Waiting for Next.js dev server
+=======
+ GET / 200 in 3.5s (compile: 3.3s, render: 241ms)
+ GET / 200 in 3.5s (compile: 3.3s, render: 187ms)
+Next.js dev server is ready!
+==========================================
+[2026-03-26 19:57:19] Completed: Waiting for Next.js dev server
+>>>>>>> 9031fb4 (📱 Complete Offline Capabilities Implementation - True PWA Experience)
+[LOG] Step: Waiting for Next.js dev server | Duration: 5s
+==========================================
+
+==========================================
+<<<<<<< HEAD
+[2026-03-26 01:57:20] Starting: Health check
+=======
+[2026-03-26 19:57:19] Starting: Health check
+>>>>>>> 9031fb4 (📱 Complete Offline Capabilities Implementation - True PWA Experience)
+==========================================
+[BUN] Performing health check...
+⚠ Unsupported metadata themeColor is configured in metadata export in /. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+⚠ Unsupported metadata colorScheme is configured in metadata export in /. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+<<<<<<< HEAD
+ GET / 200 in 45ms (compile: 3ms, render: 42ms)
+=======
+>>>>>>> 9031fb4 (📱 Complete Offline Capabilities Implementation - True PWA Experience)
+⚠ Unsupported metadata themeColor is configured in metadata export in /. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+⚠ Unsupported metadata colorScheme is configured in metadata export in /. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+<<<<<<< HEAD
+ GET / 200 in 38ms (compile: 3ms, render: 35ms)
+[BUN] Health check passed
+==========================================
+[2026-03-26 01:57:20] Completed: Health check
+=======
+ GET / 200 in 46ms (compile: 2ms, render: 44ms)
+ GET / 200 in 36ms (compile: 3ms, render: 33ms)
+[BUN] Health check passed
+==========================================
+[2026-03-26 19:57:19] Completed: Health check
+>>>>>>> 9031fb4 (📱 Complete Offline Capabilities Implementation - True PWA Experience)
+[LOG] Step: Health check | Duration: 0s
+==========================================
+
+==========================================
+<<<<<<< HEAD
+[2026-03-26 01:57:20] Starting: Starting mini-services
+=======
+[2026-03-26 19:57:19] Starting: Starting mini-services
+>>>>>>> 9031fb4 (📱 Complete Offline Capabilities Implementation - True PWA Experience)
+==========================================
+Found mini-services directory, scanning for sub-services...
+Mini-services startup completed. Started 0 service(s).
+==========================================
+<<<<<<< HEAD
+[2026-03-26 01:57:20] Completed: Starting mini-services
+[LOG] Step: Starting mini-services | Duration: 0s
+==========================================
+
+Next.js dev server is running in background (PID: 620).
+Use 'kill 620' to stop it.
+⚠ Unsupported metadata themeColor is configured in metadata export in /. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+⚠ Unsupported metadata colorScheme is configured in metadata export in /. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET / 200 in 158ms (compile: 48ms, render: 110ms)
+⚠ Unsupported metadata themeColor is configured in metadata export in /. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+⚠ Unsupported metadata colorScheme is configured in metadata export in /. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET / 200 in 53ms (compile: 7ms, render: 46ms)
+[next-auth][warn][NEXTAUTH_URL] 
+https://next-auth.js.org/warnings#nextauth_url
+ GET /api/auth/session 200 in 1416ms (compile: 1389ms, render: 28ms)
+=======
+[2026-03-26 19:57:19] Completed: Starting mini-services
+[LOG] Step: Starting mini-services | Duration: 0s
+==========================================
+
+Next.js dev server is running in background (PID: 636).
+Use 'kill 636' to stop it.
+✓ Compiled in 121ms
+⨯ ./src/app/layout.tsx:6:1
+Module not found: Can't resolve '@/components/offline-provider'
+[0m [90m 4 |[39m [36mimport[39m { [33mToaster[39m } [36mfrom[39m [32m"@/components/ui/toaster"[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { [33mProviders[39m } [36mfrom[39m [32m"@/components/providers"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 6 |[39m [36mimport[39m { [33mOfflineProvider[39m } [36mfrom[39m [32m"@/components/offline-provider"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 7 |[39m
+ [90m 8 |[39m [36mconst[39m geistSans [33m=[39m [33mGeist[39m({
+ [90m 9 |[39m   variable[33m:[39m [32m"--font-geist-sans"[39m[33m,[39m[0m
+
+Import map: aliased to relative './src/components/offline-provider' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/layout.tsx:6:1
+Module not found: Can't resolve '@/components/offline-provider'
+[0m [90m 4 |[39m [36mimport[39m { [33mToaster[39m } [36mfrom[39m [32m"@/components/ui/toaster"[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { [33mProviders[39m } [36mfrom[39m [32m"@/components/providers"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 6 |[39m [36mimport[39m { [33mOfflineProvider[39m } [36mfrom[39m [32m"@/components/offline-provider"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 7 |[39m
+ [90m 8 |[39m [36mconst[39m geistSans [33m=[39m [33mGeist[39m({
+ [90m 9 |[39m   variable[33m:[39m [32m"--font-geist-sans"[39m[33m,[39m[0m
+
+Import map: aliased to relative './src/components/offline-provider' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+✓ Compiled in 133ms
+>>>>>>> 9031fb4 (📱 Complete Offline Capabilities Implementation - True PWA Experience)
+==========================================
+[2026-03-27 06:32:40] Starting: bun install
+==========================================
+[BUN] Installing dependencies...
+[0.02ms] ".env"
+bun install v1.3.10 (30e609e0)
+
+Checked 872 installs across 941 packages (no changes) [27.00ms]
+==========================================
+[2026-03-27 06:32:40] Completed: bun install
+[LOG] Step: bun install | Duration: 0s
+==========================================
+
+==========================================
+[2026-03-27 06:32:40] Starting: bun run db:push
+==========================================
+[BUN] Setting up database...
+$ prisma db push
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": SQLite database "custom.db" at "file:/home/z/my-project/db/custom.db"
+Error: P1012
+
+error: Error validating: The argument fields must refer only to existing fields. The following fields do not exist in this model: rewardId
+  -->  prisma/schema.prisma:715
+   | 
+714 |   userReward        UserReward @relation(fields: [userRewardId], references: [id])
+715 |   reward            Reward     @relation(fields: [rewardId], references: [id])
+   | 
+
+
+error: script "db:push" exited with code 1
+==========================================
+[2026-03-29 05:21:49] Starting: bun install
+==========================================
+[BUN] Installing dependencies...
+[0.09ms] ".env"
+bun install v1.3.10 (30e609e0)
+
+Checked 872 installs across 941 packages (no changes) [43.00ms]
+==========================================
+[2026-03-29 05:21:49] Completed: bun install
+[LOG] Step: bun install | Duration: 0s
+==========================================
+
+==========================================
+[2026-03-29 05:21:49] Starting: bun run db:push
+==========================================
+[BUN] Setting up database...
+$ prisma db push
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": SQLite database "custom.db" at "file:/home/z/my-project/db/custom.db"
+Error: P1012
+
+error: Error validating field `certifications` in model `Cleaner`: The relation field `certifications` on model `Cleaner` is missing an opposite relation field on the model `Certification`. Either run `prisma format` or add it manually.
+  -->  prisma/schema.prisma:102
+   | 
+101 |   emergencyRequests EmergencyRequest[]
+102 |   certifications    Certification[]
+103 |   traineeEnrollments TraineeEnrollment[]
+   | 
+error: Error validating field `traineeEnrollments` in model `Cleaner`: The relation field `traineeEnrollments` on model `Cleaner` is missing an opposite relation field on the model `TraineeEnrollment`. Either run `prisma format` or add it manually.
+  -->  prisma/schema.prisma:103
+   | 
+102 |   certifications    Certification[]
+103 |   traineeEnrollments TraineeEnrollment[]
+104 | 
+   | 
+error: Error parsing attribute "@relation": The relation field `groupBooking` on Model `CleaningRequest` must specify the `fields` argument in the @relation attribute. You can run `prisma format` to fix this automatically.
+  -->  prisma/schema.prisma:199
+   | 
+198 |   payment           Payment?
+199 |   groupBooking      GroupBooking?
+200 |   packageBooking    PackageBooking?
+   | 
+error: Error parsing attribute "@relation": The relation field `groupBooking` on Model `CleaningRequest` must specify the `references` argument in the @relation attribute.
+  -->  prisma/schema.prisma:199
+   | 
+198 |   payment           Payment?
+199 |   groupBooking      GroupBooking?
+200 |   packageBooking    PackageBooking?
+   | 
+error: Error validating field `packageBooking` in model `CleaningRequest`: The relation field `packageBooking` on model `CleaningRequest` is missing an opposite relation field on the model `PackageBooking`. Either run `prisma format` or add it manually.
+  -->  prisma/schema.prisma:200
+   | 
+199 |   groupBooking      GroupBooking?
+200 |   packageBooking    PackageBooking?
+201 | 
+   | 
+error: Error parsing attribute "@relation": The relation fields `packageBooking` on Model `CleaningRecord` and `cleaningRecord` on Model `PackageBooking` do not provide the `fields` argument in the @relation attribute. You have to provide it on one of the two fields.
+  -->  prisma/schema.prisma:228
+   | 
+227 |   feedbacks         Feedback[]
+228 |   packageBooking    PackageBooking?
+229 |   healthCertification HealthCertification?
+   | 
+error: Error parsing attribute "@relation": The relation fields `cleaningRecord` on Model `PackageBooking` and `packageBooking` on Model `CleaningRecord` do not provide the `fields` argument in the @relation attribute. You have to provide it on one of the two fields.
+  -->  prisma/schema.prisma:432
+   | 
+431 |   tank              Tank          @relation(fields: [tankId], references: [id])
+432 |   cleaningRecord    CleaningRecord?
+433 |   payment           Payment?
+   | 
+error: Error parsing attribute "@relation": The relation fields `packageBooking` on Model `CleaningRecord` and `cleaningRecord` on Model `PackageBooking` do not provide the `references` argument in the @relation attribute. You have to provide it on one of the two fields.
+  -->  prisma/schema.prisma:228
+   | 
+227 |   feedbacks         Feedback[]
+228 |   packageBooking    PackageBooking?
+229 |   healthCertification HealthCertification?
+   | 
+error: Error parsing attribute "@relation": The relation fields `cleaningRecord` on Model `PackageBooking` and `packageBooking` on Model `CleaningRecord` do not provide the `references` argument in the @relation attribute. You have to provide it on one of the two fields.
+  -->  prisma/schema.prisma:432
+   | 
+431 |   tank              Tank          @relation(fields: [tankId], references: [id])
+432 |   cleaningRecord    CleaningRecord?
+433 |   payment           Payment?
+   | 
+error: Error validating field `healthCertification` in model `CleaningRecord`: The relation field `healthCertification` on model `CleaningRecord` is missing an opposite relation field on the model `HealthCertification`. Either run `prisma format` or add it manually.
+  -->  prisma/schema.prisma:229
+   | 
+228 |   packageBooking    PackageBooking?
+229 |   healthCertification HealthCertification?
+230 |   certificationRequest CertificationRequest?
+   | 
+error: Error validating field `certificationRequest` in model `CleaningRecord`: The relation field `certificationRequest` on model `CleaningRecord` is missing an opposite relation field on the model `CertificationRequest`. Either run `prisma format` or add it manually.
+  -->  prisma/schema.prisma:230
+   | 
+229 |   healthCertification HealthCertification?
+230 |   certificationRequest CertificationRequest?
+231 | 
+   | 
+error: Error parsing attribute "@relation": The relation field `groupBooking` on Model `Payment` must specify the `fields` argument in the @relation attribute. You can run `prisma format` to fix this automatically.
+  -->  prisma/schema.prisma:256
+   | 
+255 |   request           CleaningRequest? @relation(fields: [requestId], references: [id])
+256 |   groupBooking      GroupBooking?
+257 |   packageBooking    PackageBooking?
+   | 
+error: Error parsing attribute "@relation": The relation field `groupBooking` on Model `Payment` must specify the `references` argument in the @relation attribute.
+  -->  prisma/schema.prisma:256
+   | 
+255 |   request           CleaningRequest? @relation(fields: [requestId], references: [id])
+256 |   groupBooking      GroupBooking?
+257 |   packageBooking    PackageBooking?
+   | 
+error: Error validating field `escrowAccount` in model `Payment`: The relation field `escrowAccount` on model `Payment` is missing an opposite relation field on the model `EscrowAccount`. Either run `prisma format` or add it manually.
+  -->  prisma/schema.prisma:258
+   | 
+257 |   packageBooking    PackageBooking?
+258 |   escrowAccount     EscrowAccount?
+259 | 
+   | 
+error: Error validating field `tank` in model `EmergencyRequest`: The relation field `tank` on model `EmergencyRequest` is missing an opposite relation field on the model `Tank`. Either run `prisma format` or add it manually.
+  -->  prisma/schema.prisma:386
+   | 
+385 |   user              User     @relation(fields: [userId], references: [id])
+386 |   tank              Tank?    @relation(fields: [tankId], references: [id])
+387 |   assignedCleaner    Cleaner? @relation(fields: [assignedCleanerId], references: [id])
+   | 
+error: Error validating field `cleaningRecord` in model `EmergencyRequest`: The relation field `cleaningRecord` on model `EmergencyRequest` is missing an opposite relation field on the model `CleaningRecord`. Either run `prisma format` or add it manually.
+  -->  prisma/schema.prisma:388
+   | 
+387 |   assignedCleaner    Cleaner? @relation(fields: [assignedCleanerId], references: [id])
+388 |   cleaningRecord    CleaningRecord?
+389 |   payment           Payment?
+   | 
+error: Error validating field `payment` in model `EmergencyRequest`: The relation field `payment` on model `EmergencyRequest` is missing an opposite relation field on the model `Payment`. Either run `prisma format` or add it manually.
+  -->  prisma/schema.prisma:389
+   | 
+388 |   cleaningRecord    CleaningRecord?
+389 |   payment           Payment?
+390 | 
+   | 
+error: Error validating field `tank` in model `PackageBooking`: The relation field `tank` on model `PackageBooking` is missing an opposite relation field on the model `Tank`. Either run `prisma format` or add it manually.
+  -->  prisma/schema.prisma:431
+   | 
+430 |   user              User          @relation(fields: [userId], references: [id])
+431 |   tank              Tank          @relation(fields: [tankId], references: [id])
+432 |   cleaningRecord    CleaningRecord?
+   | 
+error: Error parsing attribute "@relation": The relation fields `payment` on Model `PackageBooking` and `packageBooking` on Model `Payment` do not provide the `fields` argument in the @relation attribute. You have to provide it on one of the two fields.
+  -->  prisma/schema.prisma:433
+   | 
+432 |   cleaningRecord    CleaningRecord?
+433 |   payment           Payment?
+434 | 
+   | 
+error: Error parsing attribute "@relation": The relation fields `packageBooking` on Model `Payment` and `payment` on Model `PackageBooking` do not provide the `fields` argument in the @relation attribute. You have to provide it on one of the two fields.
+  -->  prisma/schema.prisma:257
+   | 
+256 |   groupBooking      GroupBooking?
+257 |   packageBooking    PackageBooking?
+258 |   escrowAccount     EscrowAccount?
+   | 
+error: Error parsing attribute "@relation": The relation fields `payment` on Model `PackageBooking` and `packageBooking` on Model `Payment` do not provide the `references` argument in the @relation attribute. You have to provide it on one of the two fields.
+  -->  prisma/schema.prisma:433
+   | 
+432 |   cleaningRecord    CleaningRecord?
+433 |   payment           Payment?
+434 | 
+   | 
+error: Error parsing attribute "@relation": The relation fields `packageBooking` on Model `Payment` and `payment` on Model `PackageBooking` do not provide the `references` argument in the @relation attribute. You have to provide it on one of the two fields.
+  -->  prisma/schema.prisma:257
+   | 
+256 |   groupBooking      GroupBooking?
+257 |   packageBooking    PackageBooking?
+258 |   escrowAccount     EscrowAccount?
+   | 
+error: Error parsing attribute "@relation": A one-to-one relation must use unique fields on the defining side. Either add an `@unique` attribute to the field `traineeId`, or change the relation to one-to-many.
+  -->  prisma/schema.prisma:477
+   | 
+476 |   trainingProgram    TrainingProgram @relation(fields: [trainingProgramId], references: [id])
+477 |   trainee           TraineeEnrollment @relation(fields: [traineeId], references: [id])
+478 | 
+   | 
+error: Error validating field `transaction` in model `WalletBalance`: The relation field `transaction` on model `WalletBalance` is missing an opposite relation field on the model `Transaction`. Either run `prisma format` or add it manually.
+  -->  prisma/schema.prisma:553
+   | 
+552 |   wallet            Wallet      @relation(fields: [walletId], references: [id])
+553 |   transaction       Transaction? @relation(fields: [transactionId], references: [id])
+554 | 
+   | 
+error: Error parsing attribute "@relation": A one-to-one relation must use unique fields on the defining side. Either add an `@unique` attribute to the field `tankId`, or change the relation to one-to-many.
+  -->  prisma/schema.prisma:612
+   | 
+611 |   // Relationships
+612 |   tank              Tank    @relation(fields: [tankId], references: [id])
+613 |   user              User    @relation(fields: [userId], references: [id])
+   | 
+error: Error validating field `user` in model `InsuranceClaim`: The relation field `user` on model `InsuranceClaim` is missing an opposite relation field on the model `User`. Either run `prisma format` or add it manually.
+  -->  prisma/schema.prisma:639
+   | 
+638 |   tankInsurance     TankInsurance @relation(fields: [tankInsuranceId], references: [id])
+639 |   user              User          @relation(fields: [userId], references: [id])
+640 | 
+   | 
+error: Error parsing attribute "@relation": A one-to-one relation must use unique fields on the defining side. Either add an `@unique` attribute to the field `userRewardId`, or change the relation to one-to-many.
+  -->  prisma/schema.prisma:715
+   | 
+714 |   // Relationships
+715 |   userReward        UserReward @relation(fields: [userRewardId], references: [id])
+716 |   reward            Reward     @relation(fields: [rewardId], references: [id])
+   | 
+error: Error validating field `healthCertification` in model `CertificationRequest`: The relation field `healthCertification` on model `CertificationRequest` is missing an opposite relation field on the model `HealthCertification`. Either run `prisma format` or add it manually.
+  -->  prisma/schema.prisma:761
+   | 
+760 |   user              User                @relation(fields: [userId], references: [id])
+761 |   healthCertification HealthCertification? @relation(fields: [certificateId], references: [id])
+762 | 
+   | 
+
+
+error: script "db:push" exited with code 1

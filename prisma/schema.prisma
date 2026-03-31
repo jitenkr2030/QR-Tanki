@@ -1,0 +1,764 @@
+// QR Tanki Database Schema
+// Comprehensive water tank cleaning management system
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User roles for the system
+enum UserRole {
+  USER
+  CLEANER
+  ADMIN
+}
+
+// Subscription plans
+enum SubscriptionPlan {
+  BASIC
+  PREMIUM
+  NONE
+}
+
+// Cleaning types
+enum CleaningType {
+  BASIC
+  DEEP
+  EMERGENCY
+}
+
+// Payment status
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+// Task status
+enum TaskStatus {
+  PENDING
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+// Main user model with role-based access
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  name              String
+  phone             String?
+  role              UserRole @default(USER)
+  avatar            String?
+  isVerified        Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  tanks             Tank[]
+  subscriptions     Subscription[]
+  cleaningRequests  CleaningRequest[]
+  feedbacks         Feedback[]
+  payments          Payment[]
+  cleaner           Cleaner?
+  wallet            Wallet?
+  groupMembers      GroupMember[]
+  emergencyRequests EmergencyRequest[]
+  packageBookings   PackageBooking[]
+  traineeEnrollments TraineeEnrollment[]
+  tankInsurances    TankInsurance[]
+  userRewards       UserReward[]
+  healthCertifications HealthCertification[]
+  certificationRequests CertificationRequest[]
+
+  @@map("users")
+}
+
+// Cleaner profile with additional fields
+model Cleaner {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  experience        String?  // Years of experience
+  serviceArea       String?  // Geographic area they serve
+  rating            Float?   @default(0)
+  totalJobs         Int      @default(0)
+  isAvailable       Boolean  @default(true)
+  bio               String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  user              User     @relation(fields: [userId], references: [id])
+  cleaningRecords   CleaningRecord[]
+  earnings          Earning[]
+  cleaningRequests  CleaningRequest[]
+  emergencyRequests EmergencyRequest[]
+  certifications    Certification[]
+  traineeEnrollments TraineeEnrollment[]
+
+  @@map("cleaners")
+}
+
+// Tank information
+model Tank {
+  id                String   @id @default(cuid())
+  userId            String
+  qrCodeId          String   @unique
+  name              String   // Tank identifier
+  type              String   // Overhead, underground, etc.
+  capacity          String?  // Liters
+  location          String   // Address/landmark
+  installationDate  DateTime?
+  lastCleanedDate   DateTime?
+  nextDueDate       DateTime?
+  hygieneScore      Float?   @default(0)
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  user              User     @relation(fields: [userId], references: [id])
+  qrCode            QRCode   @relation(fields: [qrCodeId], references: [id])
+  cleaningRecords   CleaningRecord[]
+  cleaningRequests  CleaningRequest[]
+  tankInsurance     TankInsurance?
+  healthCertifications HealthCertification[]
+  certificationRequests CertificationRequest[]
+
+  @@map("tanks")
+}
+
+// QR Code generation and tracking
+model QRCode {
+  id                String   @id @default(cuid())
+  code              String   @unique
+  tankId            String?  @unique
+  isGenerated       Boolean  @default(false)
+  isPaid            Boolean  @default(false)
+  paymentId         String?  @unique
+  generatedAt       DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  tank              Tank?
+  payment           Payment? @relation(fields: [paymentId], references: [id])
+
+  @@map("qr_codes")
+}
+
+// Subscription management
+model Subscription {
+  id                String           @id @default(cuid())
+  userId            String
+  plan              SubscriptionPlan
+  amount            Float
+  startDate         DateTime
+  endDate           DateTime
+  isActive          Boolean          @default(true)
+  autoRenew         Boolean          @default(false)
+  cleaningFrequency Int              @default(1) // Cleanings per month
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  // Relationships
+  user              User             @relation(fields: [userId], references: [id])
+  payments          Payment[]
+
+  @@map("subscriptions")
+}
+
+// Cleaning requests by users
+model CleaningRequest {
+  id                String       @id @default(cuid())
+  userId            String
+  tankId            String
+  cleanerId         String?
+  cleaningType      CleaningType
+  requestedDate     DateTime
+  scheduledDate     DateTime?
+  preferredTime     String?
+  notes             String?
+  status            TaskStatus   @default(PENDING)
+  urgencyLevel      Int          @default(1) // 1-5 scale
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  // Relationships
+  user              User         @relation(fields: [userId], references: [id])
+  tank              Tank         @relation(fields: [tankId], references: [id])
+  cleaner           Cleaner?     @relation(fields: [cleanerId], references: [id])
+  cleaningRecord    CleaningRecord?
+  payment           Payment?
+  groupBooking      GroupBooking?
+  packageBooking    PackageBooking?
+
+  @@map("cleaning_requests")
+}
+
+// Actual cleaning records
+model CleaningRecord {
+  id                String       @id @default(cuid())
+  tankId            String
+  cleanerId         String
+  requestId         String?      @unique
+  cleaningType      CleaningType
+  cleanedAt         DateTime
+  duration          Int?         // Minutes
+  beforePhotos      String?      // JSON string of photo URLs
+  afterPhotos       String?      // JSON string of photo URLs
+  notes             String?
+  hygieneScore      Float?       @default(0)
+  isVerified        Boolean      @default(false)
+  verifiedBy        String?      // Admin ID
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  // Relationships
+  tank              Tank         @relation(fields: [tankId], references: [id])
+  cleaner           Cleaner      @relation(fields: [cleanerId], references: [id])
+  request           CleaningRequest? @relation(fields: [requestId], references: [id])
+  feedbacks         Feedback[]
+  packageBooking    PackageBooking?
+  healthCertification HealthCertification?
+  certificationRequest CertificationRequest?
+
+  @@map("cleaning_records")
+}
+
+// Payment tracking
+model Payment {
+  id                String         @id @default(cuid())
+  userId            String
+  subscriptionId    String?
+  qrCodeId          String?        @unique
+  requestId         String?        @unique
+  amount            Float
+  type              String         // "QR_GENERATION", "SUBSCRIPTION", "CLEANING"
+  status            PaymentStatus  @default(PENDING)
+  paymentMethod     String?        // "UPI", "CARD", "CASH"
+  transactionId     String?        @unique
+  paidAt            DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  // Relationships
+  user              User           @relation(fields: [userId], references: [id])
+  subscription      Subscription?  @relation(fields: [subscriptionId], references: [id])
+  qrCode            QRCode?
+  request           CleaningRequest? @relation(fields: [requestId], references: [id])
+  groupBooking      GroupBooking?
+  packageBooking    PackageBooking?
+  escrowAccount     EscrowAccount?
+
+  @@map("payments")
+}
+
+// Cleaner earnings tracking
+model Earning {
+  id                String   @id @default(cuid())
+  cleanerId         String
+  requestId         String?
+  amount            Float
+  commission        Float    // Platform commission
+  netAmount         Float    // Amount after commission
+  earnedAt          DateTime
+  isPaid            Boolean  @default(false)
+  paidAt            DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  cleaner           Cleaner  @relation(fields: [cleanerId], references: [id])
+
+  @@map("earnings")
+}
+
+// Feedback and ratings
+model Feedback {
+  id                String   @id @default(cuid())
+  userId            String
+  cleaningRecordId  String
+  cleanerId         String?
+  rating            Int      // 1-5 stars
+  comment           String?
+  isPublic          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  user              User     @relation(fields: [userId], references: [id])
+  cleaningRecord    CleaningRecord @relation(fields: [cleaningRecordId], references: [id])
+
+  @@map("feedbacks")
+}
+
+// Notifications system
+model Notification {
+  id                String   @id @default(cuid())
+  userId            String?
+  title             String
+  message           String
+  type              String   // "REMINDER", "BOOKING", "PAYMENT", "SYSTEM"
+  isRead            Boolean  @default(false)
+  actionUrl         String?
+  createdAt         DateTime @default(now())
+
+  @@map("notifications")
+}
+
+// Group Booking for societies/buildings
+model GroupBooking {
+  id                String   @id @default(cuid())
+  societyName       String
+  contactPerson     String
+  contactPhone      String
+  contactEmail      String
+  address           String
+  totalTanks        Int
+  discountRate      Float    @default(0.1) // 10% discount
+  basePrice         Float
+  discountedPrice    Float
+  status            String   @default("PENDING") // PENDING, CONFIRMED, COMPLETED, CANCELLED
+  scheduledDate     DateTime?
+  preferredTime     String?
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  groupMembers      GroupMember[]
+  payments          Payment[]
+  cleaningRequests  CleaningRequest[]
+
+  @@map("group_bookings")
+}
+
+// Group members for society bookings
+model GroupMember {
+  id                String   @id @default(cuid())
+  groupBookingId    String
+  userId            String
+  tankName          String
+  tankType          String
+  tankCapacity      String?
+  tankLocation      String
+  isPrimaryContact  Boolean  @default(false)
+  createdAt         DateTime @default(now())
+
+  // Relationships
+  groupBooking      GroupBooking @relation(fields: [groupBookingId], references: [id])
+  user              User        @relation(fields: [userId], references: [id])
+
+  @@unique([groupBookingId, userId])
+  @@map("group_members")
+}
+
+// Emergency Service Requests
+model EmergencyRequest {
+  id                String   @id @default(cuid())
+  userId            String
+  tankId            String?
+  contactName       String
+  contactPhone      String
+  contactEmail      String
+  address           String
+  urgencyLevel      String   @default("HIGH") // LOW, MEDIUM, HIGH, CRITICAL
+  issueDescription   String
+  requestedAt        DateTime @default(now())
+  respondedAt        DateTime?
+  assignedCleanerId  String?
+  estimatedArrival   DateTime?
+  status            String   @default("REQUESTED") // REQUESTED, ASSIGNED, IN_PROGRESS, COMPLETED, CANCELLED
+  priorityFee       Float    @default(0) // Additional fee for emergency
+  totalCost         Float
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  user              User     @relation(fields: [userId], references: [id])
+  tank              Tank?    @relation(fields: [tankId], references: [id])
+  assignedCleaner    Cleaner? @relation(fields: [assignedCleanerId], references: [id])
+  cleaningRecord    CleaningRecord?
+  payment           Payment?
+
+  @@map("emergency_requests")
+}
+
+// Custom Packages for specific needs
+model CustomPackage {
+  id                String   @id @default(cuid())
+  name              String
+  description       String
+  basePrice         Float
+  duration          String   // "1 day", "1 week", "1 month"
+  includedServices   String   // JSON array of services
+  customizations    String?  // JSON object of customization options
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  packageBookings   PackageBooking[]
+
+  @@map("custom_packages")
+}
+
+// Custom Package Bookings
+model PackageBooking {
+  id                String   @id @default(cuid())
+  customPackageId   String
+  userId            String
+  tankId            String
+  customizations    String?  // JSON of selected customizations
+  totalPrice        Float
+  scheduledDate     DateTime?
+  preferredTime     String?
+  status            String   @default("PENDING")
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  customPackage     CustomPackage @relation(fields: [customPackageId], references: [id])
+  user              User          @relation(fields: [userId], references: [id])
+  tank              Tank          @relation(fields: [tankId], references: [id])
+  cleaningRecord    CleaningRecord?
+  payment           Payment?
+
+  @@map("package_bookings")
+}
+
+// Training Programs for Cleaners
+model TrainingProgram {
+  id                String   @id @default(cuid())
+  title             String
+  description       String
+  duration          String   // "2 weeks", "1 month"
+  price             Float
+  maxParticipants   Int
+  currentParticipants Int      @default(0)
+  startDate         DateTime?
+  endDate           DateTime?
+  location          String?
+  instructor        String?
+  curriculum        String?  // JSON of course content
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  enrollments       TraineeEnrollment[]
+  certifications    Certification[]
+
+  @@map("training_programs")
+}
+
+// Certifications for Cleaners
+model Certification {
+  id                String   @id @default(cuid())
+  trainingProgramId  String
+  traineeId         String
+  issuedAt          DateTime
+  expiresAt         DateTime?
+  certificateNumber String   @unique
+  status            String   @default("ACTIVE") // ACTIVE, EXPIRED, REVOKED
+  score             Int?     // Training score
+  createdAt         DateTime @default(now())
+
+  // Relationships
+  trainingProgram    TrainingProgram @relation(fields: [trainingProgramId], references: [id])
+  trainee           TraineeEnrollment @relation(fields: [traineeId], references: [id])
+
+  @@map("certifications")
+}
+
+// Trainee Enrollments
+model TraineeEnrollment {
+  id                String   @id @default(cuid())
+  trainingProgramId  String
+  traineeId         String
+  userId            String
+  enrolledAt        DateTime @default(now())
+  completedAt       DateTime?
+  status            String   @default("ENROLLED") // ENROLLED, IN_PROGRESS, COMPLETED, DROPPED
+  progress          Float    @default(0)
+  paymentStatus     String   @default("PENDING") // PENDING, PAID, REFUNDED
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  trainingProgram    TrainingProgram @relation(fields: [trainingProgramId], references: [id])
+  certification     Certification?
+  user              User            @relation(fields: [userId], references: [id])
+
+  @@map("trainee_enrollments")
+}
+
+// Digital Wallet
+model Wallet {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  balance           Float    @default(0)
+  currency          String   @default("INR")
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  user              User         @relation(fields: [userId], references: [id])
+  transactions      Transaction[]
+  walletBalances    WalletBalance[]
+  escrowAccounts    EscrowAccount[]
+
+  @@map("wallets")
+}
+
+// Wallet Transactions
+model Transaction {
+  id                String   @id @default(cuid())
+  walletId          String
+  type              String   // "CREDIT", "DEBIT", "TRANSFER", "WITHDRAWAL"
+  amount            Float
+  description       String?
+  referenceId       String?  // Reference to payment, earning, etc.
+  referenceType     String?  // "PAYMENT", "EARNING", "REFUND"
+  status            String   @default("PENDING") // PENDING, COMPLETED, FAILED
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  wallet            Wallet @relation(fields: [walletId], references: [id])
+
+  @@map("transactions")
+}
+
+// Wallet Balance History
+model WalletBalance {
+  id                String   @id @default(cuid())
+  walletId          String
+  balance           Float
+  transactionId     String?
+  recordedAt        DateTime @default(now())
+
+  // Relationships
+  wallet            Wallet      @relation(fields: [walletId], references: [id])
+  transaction       Transaction? @relation(fields: [transactionId], references: [id])
+
+  @@map("wallet_balances")
+}
+
+// Escrow Service
+model EscrowAccount {
+  id                String   @id @default(cuid())
+  walletId          String
+  bookingId         String?
+  amount            Float
+  status            String   @default("HELD") // HELD, RELEASED, REFUNDED
+  releasedAt        DateTime?
+  refundedAt        DateTime?
+  releaseReason     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  wallet            Wallet              @relation(fields: [walletId], references: [id])
+  escrowTransactions EscrowTransaction[]
+
+  @@map("escrow_accounts")
+}
+
+// Escrow Transactions
+model EscrowTransaction {
+  id                String   @id @default(cuid())
+  escrowAccountId   String
+  type              String   // "HOLD", "RELEASE", "REFUND"
+  amount            Float
+  description       String?
+  createdAt         DateTime @default(now())
+
+  // Relationships
+  escrowAccount     EscrowAccount @relation(fields: [escrowAccountId], references: [id])
+
+  @@map("escrow_transactions")
+}
+
+// Tank Insurance
+model TankInsurance {
+  id                String   @id @default(cuid())
+  tankId            String
+  userId            String
+  policyNumber      String   @unique
+  provider          String
+  coverageType      String   // "BASIC", "PREMIUM", "COMPREHENSIVE"
+  coverageAmount    Float
+  premium           Float
+  premiumFrequency   String   // "MONTHLY", "QUARTERLY", "YEARLY"
+  startDate         DateTime
+  endDate           DateTime
+  isActive          Boolean  @default(true)
+  documents         String?  // JSON of policy documents
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  tank              Tank    @relation(fields: [tankId], references: [id])
+  user              User    @relation(fields: [userId], references: [id])
+  insuranceClaims   InsuranceClaim[]
+
+  @@map("tank_insurances")
+}
+
+// Insurance Claims
+model InsuranceClaim {
+  id                String   @id @default(cuid())
+  tankInsuranceId   String
+  userId            String
+  claimNumber       String   @unique
+  incidentDate      DateTime
+  incidentDescription String
+  claimAmount       Float
+  status            String   @default("SUBMITTED") // SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, PAID
+  documents         String?  // JSON of claim documents
+  assessedAmount    Float?
+  approvedAmount    Float?
+  approvedAt        DateTime?
+  paidAt            DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  tankInsurance     TankInsurance @relation(fields: [tankInsuranceId], references: [id])
+  user              User          @relation(fields: [userId], references: [id])
+
+  @@map("insurance_claims")
+}
+
+// Loyalty Rewards Program
+model LoyaltyProgram {
+  id                String   @id @default(cuid())
+  name              String
+  description       String
+  pointsPerRupee    Float    @default(1)
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  rewards           Reward[]
+  userRewards       UserReward[]
+
+  @@map("loyalty_programs")
+}
+
+// Reward Items
+model Reward {
+  id                String   @id @default(cuid())
+  loyaltyProgramId  String
+  name              String
+  description       String
+  pointsRequired    Int
+  rewardType        String   // "DISCOUNT", "SERVICE", "PRODUCT", "CASHBACK"
+  rewardValue       Float    // Discount percentage, service value, etc.
+  isActive          Boolean  @default(true)
+  expiresAt         DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  loyaltyProgram    LoyaltyProgram @relation(fields: [loyaltyProgramId], references: [id])
+  userRewards       UserReward[]
+  rewardRedemptions RewardRedemption[]
+
+  @@map("rewards")
+}
+
+// User Rewards
+model UserReward {
+  id                String   @id @default(cuid())
+  userId            String
+  loyaltyProgramId  String
+  rewardId          String
+  points            Int
+  earnedAt          DateTime @default(now())
+  expiresAt         DateTime?
+  isRedeemed        Boolean  @default(false)
+  redeemedAt        DateTime?
+  createdAt         DateTime @default(now())
+
+  // Relationships
+  user              User           @relation(fields: [userId], references: [id])
+  loyaltyProgram    LoyaltyProgram @relation(fields: [loyaltyProgramId], references: [id])
+  reward            Reward         @relation(fields: [rewardId], references: [id])
+  rewardRedemption  RewardRedemption?
+
+  @@map("user_rewards")
+}
+
+// Reward Redemptions
+model RewardRedemption {
+  id                String   @id @default(cuid())
+  userRewardId      String
+  rewardId          String
+  redeemedAt        DateTime @default(now())
+  status            String   @default("ACTIVE") // ACTIVE, EXPIRED, USED
+  createdAt         DateTime @default(now())
+
+  // Relationships
+  userReward        UserReward @relation(fields: [userRewardId], references: [id])
+  reward            Reward     @relation(fields: [rewardId], references: [id])
+
+  @@map("reward_redemptions")
+}
+
+// Health Certifications
+model HealthCertification {
+  id                String   @id @default(cuid())
+  tankId            String
+  userId            String
+  certificationId   String? @unique
+  certificateNumber String   @unique
+  issuedBy          String   // "QR_TANKI" or "GOVT_AGENCY"
+  issuedAt          DateTime
+  validUntil        DateTime
+  hygieneScore      Float
+  testResults       String?  // JSON of water test results
+  status            String   @default("ACTIVE") // ACTIVE, EXPIRED, REVOKED
+  documents         String?  // JSON of certificate documents
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  tank              Tank    @relation(fields: [tankId], references: [id])
+  user              User    @relation(fields: [userId], references: [id])
+
+  @@map("health_certifications")
+}
+
+// Certification Requests
+model CertificationRequest {
+  id                String   @id @default(cuid())
+  tankId            String
+  userId            String
+  requestedAt        DateTime @default(now())
+  status            String   @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED, REJECTED
+  completedAt        DateTime?
+  certificateId      String?
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  tank              Tank                @relation(fields: [tankId], references: [id])
+  user              User                @relation(fields: [userId], references: [id])
+  healthCertification HealthCertification? @relation(fields: [certificateId], references: [id])
+
+  @@map("certification_requests")
+}

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - QR Tanki</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            padding: 20px;
+        }
+        
+        .offline-container {
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .offline-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+        }
+        
+        .offline-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .offline-message {
+            font-size: 16px;
+            margin-bottom: 20px;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+        
+        .offline-status {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .status-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .status-label {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .status-value {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .retry-button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-right: 10px;
+        }
+        
+        .retry-button:hover {
+            background: #1d4ed8;
+        }
+        
+        .offline-button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .offline-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .cached-data {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .cached-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #22c55e;
+        }
+        
+        .cached-list {
+            text-align: left;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .cached-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(34, 197, 94, 0.2);
+        }
+        
+        .cached-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        @media (max-width: 480px) {
+            .offline-container {
+                padding: 0 20px;
+            }
+            
+            .offline-title {
+                font-size: 20px;
+            }
+            
+            .offline-message {
+                font-size: 14px;
+            }
+            
+            .button-container {
+                flex-direction: column;
+            }
+            
+            .retry-button,
+            .offline-button {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">
+            📱
+        </div>
+        
+        <h1 class="offline-title">You're Offline</h1>
+        
+        <p class="offline-message">
+            It looks like you're not connected to the internet. Some features may not be available, but you can still access cached content.
+        </p>
+        
+        <div class="offline-status">
+            <div class="status-item">
+                <span class="status-label">Connection:</span>
+                <span class="status-value" id="connection-status">Disconnected</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Cache Status:</span>
+                <span class="status-value" id="cache-status">Available</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Last Sync:</span>
+                <span class="status-value" id="last-sync">Never</span>
+            </div>
+        </div>
+        
+        <div class="button-container">
+            <button class="retry-button" onclick="retryConnection()">
+                🔄 Retry Connection
+            </button>
+            <button class="offline-button" onclick="viewOfflineData()">
+                📊 View Offline Data
+            </button>
+        </div>
+        
+        <div class="cached-data" id="cached-data" style="display: none;">
+            <div class="cached-title">📊 Available Offline Data</div>
+            <div class="cached-list" id="cached-list">
+                <!-- Cached items will be listed here -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Check connection status
+        function updateConnectionStatus() {
+            const statusElement = document.getElementById('connection-status');
+            const cacheStatusElement = document.getElementById('cache-status');
+            
+            if (navigator.onLine) {
+                statusElement.textContent = 'Connected';
+                statusElement.style.color = '#22c55e';
+                
+                // Redirect to home if online
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+            } else {
+                statusElement.textContent = 'Disconnected';
+                statusElement.style.color = '#ef4444';
+                cacheStatusElement.textContent = 'Available';
+                cacheStatusElement.style.color = '#22c55e';
+            }
+        }
+        
+        // Update last sync time
+        function updateLastSync() {
+            const lastSyncElement = document.getElementById('last-sync');
+            const lastSync = localStorage.getItem('lastSync');
+            
+            if (lastSync) {
+                const syncDate = new Date(lastSync);
+                lastSyncElement.textContent = syncDate.toLocaleString();
+            } else {
+                lastSyncElement.textContent = 'Never';
+            }
+        }
+        
+        // Retry connection
+        function retryConnection() {
+            const statusElement = document.getElementById('connection-status');
+            statusElement.textContent = 'Checking...';
+            statusElement.style.color = '#f59e0b';
+            
+            // Simulate connection check
+            setTimeout(() => {
+                updateConnectionStatus();
+            }, 2000);
+        }
+        
+        // View offline data
+        function viewOfflineData() {
+            const cachedDataElement = document.getElementById('cached-data');
+            const cachedListElement = document.getElementById('cached-list');
+            
+            if (cachedDataElement.style.display === 'none') {
+                // Show cached data
+                cachedDataElement.style.display = 'block';
+                
+                // Get cached data from localStorage
+                const cachedTanks = JSON.parse(localStorage.getItem('cachedTanks') || '[]');
+                const cachedBookings = JSON.parse(localStorage.getItem('cachedBookings') || '[]');
+                const cachedSubscriptions = JSON.parse(localStorage.getItem('cachedSubscriptions') || '[]');
+                
+                let html = '';
+                
+                if (cachedTanks.length > 0) {
+                    html += `<div class="cached-item">
+                        <span>🏢 Tanks</span>
+                        <span>${cachedTanks.length} items</span>
+                    </div>`;
+                }
+                
+                if (cachedBookings.length > 0) {
+                    html += `<div class="cached-item">
+                        <span>📅 Bookings</span>
+                        <span>${cachedBookings.length} items</span>
+                    </div>`;
+                }
+                
+                if (cachedSubscriptions.length > 0) {
+                    html += `<div class="cached-item">
+                        <span>💎 Subscriptions</span>
+                        <span>${cachedSubscriptions.length} items</span>
+                    </div>`;
+                }
+                
+                if (html === '') {
+                    html = '<div class="cached-item"><span>No cached data available</span></div>';
+                }
+                
+                cachedListElement.innerHTML = html;
+            } else {
+                // Hide cached data
+                cachedDataElement.style.display = 'none';
+            }
+        }
+        
+        // Listen for online/offline events
+        window.addEventListener('online', () => {
+            console.log('App is online');
+            updateConnectionStatus();
+        });
+        
+        window.addEventListener('offline', () => {
+            console.log('App is offline');
+            updateConnectionStatus();
+        });
+        
+        // Initialize
+        updateConnectionStatus();
+        updateLastSync();
+        
+        // Check connection every 5 seconds
+        setInterval(updateConnectionStatus, 5000);
+    </script>
+</body>
+</html>
