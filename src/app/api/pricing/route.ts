@@ -4,14 +4,15 @@ import {
   calculateTotalPrice, 
   calculateBulkDiscount,
   applySeasonalPricing,
-  pricingData 
+  pricingData,
+  getTankPricingInfo
 } from '@/lib/pricing';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const {
-      tankType = 'residential',
+      pricingType = 'simple',
       tankIndex = 0,
       serviceType = 'basic',
       isSubscription = false,
@@ -21,9 +22,9 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // Validate input
-    if (tankType !== 'residential' && tankType !== 'commercial') {
+    if (!['simple', 'capacity', 'commercial'].includes(pricingType)) {
       return NextResponse.json(
-        { error: 'Invalid tank type. Must be residential or commercial.' },
+        { error: 'Invalid pricing type. Must be simple, capacity, or commercial.' },
         { status: 400 }
       );
     }
@@ -35,9 +36,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const pricing = tankType === 'residential' 
-      ? pricingData.residential 
-      : pricingData.commercial;
+    let pricing;
+    if (pricingType === 'simple') {
+      pricing = pricingData.simple;
+    } else if (pricingType === 'capacity') {
+      pricing = pricingData.capacity;
+    } else {
+      pricing = pricingData.commercial;
+    }
 
     if (tankIndex < 0 || tankIndex >= pricing.length) {
       return NextResponse.json(
@@ -47,7 +53,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate base price
-    let basePrice = calculateTankPrice(tankType, tankIndex, serviceType, isSubscription);
+    let basePrice = calculateTankPrice(pricingType, tankIndex, serviceType, isSubscription);
     
     // Apply seasonal pricing
     const seasonalPrice = applySeasonalPricing(basePrice);
@@ -107,11 +113,14 @@ export async function POST(request: NextRequest) {
       seasonalInfo = { name: 'Winter', adjustment: 0.85 };
     }
 
+    // Get tank pricing info
+    const tankInfo = getTankPricingInfo(pricingType, tankIndex);
+
     const response = {
       success: true,
       pricing: {
-        tankType,
-        tankInfo: pricing[tankIndex],
+        pricingType,
+        tankInfo,
         serviceType,
         isSubscription,
         tankCount,
@@ -155,9 +164,17 @@ export async function GET() {
     const response = {
       success: true,
       data: {
-        residential: pricingData.residential.map(tank => ({
-          size: tank.size,
+        simple: pricingData.simple.map(plan => ({
+          name: plan.name,
+          price: plan.price,
+          description: plan.description,
+          features: plan.features,
+          popular: plan.popular,
+          badge: plan.badge
+        })),
+        capacity: pricingData.capacity.map(tank => ({
           capacity: tank.capacity,
+          liters: tank.liters,
           basicClean: tank.basicClean,
           deepClean: tank.deepClean,
           annualSubscription: tank.annualSubscription

@@ -18,8 +18,8 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { MobileNav } from "@/components/mobile-nav"
-import ComprehensivePricingSection from "@/components/comprehensive-pricing-section"
-import PricingCalculator from "@/components/pricing-calculator"
+import HybridPricingSection from "@/components/hybrid-pricing-section"
+import HybridPricingCalculator from "@/components/hybrid-pricing-calculator"
 
 export default function Home() {
   const { data: session, status } = useSession()
@@ -380,12 +380,12 @@ export default function Home() {
               Get instant, transparent pricing based on your tank size and service requirements
             </p>
           </div>
-          <PricingCalculator />
+          <HybridPricingCalculator />
         </div>
       </section>
 
-      {/* Comprehensive Pricing Section */}
-      <ComprehensivePricingSection />
+      {/* Hybrid Pricing Section */}
+      <HybridPricingSection />
 
       {/* CTA Section */}
       <section className="py-20 px-4 bg-blue-600">

@@ -1,8 +1,18 @@
 // Comprehensive pricing system for QR Tanki
+// Maintains simple pricing for up to 500L tanks, adds capacity-based pricing for larger tanks
 
-export interface TankPricing {
-  size: string;
+export interface SimplePricing {
+  name: string;
+  price: number;
+  description: string;
+  features: string[];
+  popular?: boolean;
+  badge?: string;
+}
+
+export interface TankCapacityPricing {
   capacity: string;
+  liters: string;
   basicClean: number;
   deepClean: number;
   annualSubscription: number;
@@ -36,31 +46,91 @@ export interface SubscriptionPlan {
   popular?: boolean;
 }
 
-// Residential Tank Pricing
-export const residentialTankPricing: TankPricing[] = [
+// Simple Pricing for Home Tanks up to 500L (Your existing structure)
+export const simpleHomePricing: SimplePricing[] = [
   {
-    size: 'Small Tank',
-    capacity: '100-500 Liters',
+    name: 'QR Code Sticker',
+    price: 499,
+    description: 'Printable QR sticker for your tank',
+    features: [
+      'Printable QR sticker',
+      'Online tracking',
+      'Annual renewal ₹199/year'
+    ]
+  },
+  {
+    name: 'Basic Plan',
+    price: 99,
+    description: 'Billed yearly at ₹999 (2 cleaning/year)',
+    features: [
+      '2 cleaning every year',
+      'Basic cleaning type',
+      'Photo proof',
+      'Email reminders'
+    ],
+    popular: true,
+    badge: 'Most Popular'
+  },
+  {
+    name: 'Premium Plan',
+    price: 199,
+    description: 'Billed yearly at ₹1,999 (2 cleaning/year)',
+    features: [
+      '2 cleaning per year',
+      'Deep cleaning included',
+      'Water quality testing',
+      'Priority support',
+      'Digital certificate',
+      'SMS reminders'
+    ]
+  },
+  {
+    name: 'One-Time Clean',
+    price: 699,
+    description: 'Single cleaning service',
+    features: [
+      'One-time service',
+      'Professional cleaning',
+      'Photo documentation',
+      'Quality assurance'
+    ],
+    badge: 'Market price ₹999 → Now ₹699'
+  }
+];
+
+// Tank Capacity Pricing for Home Tanks above 500L
+export const tankCapacityPricing: TankCapacityPricing[] = [
+  {
+    capacity: 'Small Tank',
+    liters: '100-500 Liters',
     basicClean: 299,
     deepClean: 499,
     annualSubscription: 1499,
     features: ['Photo proof', 'Digital access', 'Email reminders']
   },
   {
-    size: 'Medium Tank',
-    capacity: '500-1000 Liters',
+    capacity: 'Medium Tank',
+    liters: '500-1000 Liters',
     basicClean: 399,
     deepClean: 599,
     annualSubscription: 1999,
     features: ['Photo proof', 'Water quality test', 'Digital access', 'SMS reminders']
   },
   {
-    size: 'Large Tank',
-    capacity: '1000-2000 Liters',
+    capacity: 'Large Tank',
+    liters: '1000-2000 Liters',
     basicClean: 499,
     deepClean: 699,
     annualSubscription: 2499,
     features: ['Priority support', 'Digital certificate', 'SMS/email reminders']
+  },
+  {
+    capacity: 'Extra Large Tank',
+    liters: '2000-5000 Liters',
+    basicClean: 799,
+    deepClean: 999,
+    annualSubscription: 3999,
+    features: ['Priority support', 'Advanced testing', 'Digital certificate', 'Dedicated manager']
   }
 ];
 
@@ -255,25 +325,71 @@ export const bulkDiscounts = [
 ];
 
 // Pricing Calculator Functions
+export function calculateSimplePrice(planName: string): number {
+  const plan = simpleHomePricing.find(p => p.name === planName);
+  return plan ? plan.price : 0;
+}
+
 export function calculateTankPrice(
-  tankType: 'residential' | 'commercial',
+  tankType: 'simple' | 'capacity' | 'commercial',
   tankIndex: number,
   serviceType: 'basic' | 'deep',
   isSubscription: boolean = false
 ): number {
-  const pricing = tankType === 'residential' 
-    ? residentialTankPricing[tankIndex]
-    : commercialTankPricing[tankIndex];
-  
+  if (tankType === 'simple') {
+    // For simple pricing, return the basic plan price or one-time clean price
+    if (serviceType === 'basic') {
+      return calculateSimplePrice('Basic Plan');
+    } else {
+      return calculateSimplePrice('Premium Plan');
+    }
+  }
+
+  if (tankType === 'capacity') {
+    const pricing = tankCapacityPricing[tankIndex];
+    const basePrice = serviceType === 'basic' ? pricing.basicClean : pricing.deepClean;
+    
+    if (isSubscription) {
+      return pricing.annualSubscription;
+    }
+    
+    return basePrice;
+  }
+
+  // Commercial pricing
+  const pricing = commercialTankPricing[tankIndex];
   const basePrice = serviceType === 'basic' ? pricing.basicClean : pricing.deepClean;
   
   if (isSubscription) {
-    return tankType === 'residential' 
-      ? pricing.annualSubscription
-      : pricing.quarterlySubscription;
+    return pricing.quarterlySubscription;
   }
   
   return basePrice;
+}
+
+export function getTankPricingInfo(tankType: 'simple' | 'capacity' | 'commercial', tankIndex: number) {
+  if (tankType === 'simple') {
+    return {
+      type: 'simple',
+      name: 'Standard Home Tank (Up to 500L)',
+      description: 'Perfect for regular home water tanks',
+      basicPlan: simpleHomePricing.find(p => p.name === 'Basic Plan'),
+      premiumPlan: simpleHomePricing.find(p => p.name === 'Premium Plan'),
+      oneTimeClean: simpleHomePricing.find(p => p.name === 'One-Time Clean')
+    };
+  }
+
+  if (tankType === 'capacity') {
+    return {
+      type: 'capacity',
+      ...tankCapacityPricing[tankIndex]
+    };
+  }
+
+  return {
+    type: 'commercial',
+    ...commercialTankPricing[tankIndex]
+  };
 }
 
 export function calculateTotalPrice(
@@ -384,7 +500,8 @@ export const qrCodePricing = {
 
 // Export all pricing data
 export const pricingData = {
-  residential: residentialTankPricing,
+  simple: simpleHomePricing,
+  capacity: tankCapacityPricing,
   commercial: commercialTankPricing,
   addOns: addOnServices,
   subscriptions: subscriptionPlans,
