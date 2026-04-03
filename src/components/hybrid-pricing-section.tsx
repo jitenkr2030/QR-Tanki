@@ -37,51 +37,54 @@ export default function HybridPricingSection() {
   const [selectedCategory, setSelectedCategory] = useState<'simple' | 'capacity' | 'commercial'>('simple');
 
   return (
-    <section id="pricing" className="py-20 px-4 bg-gray-50">
+    <section id="pricing" className="py-12 sm:py-20 px-4 bg-gray-50">
       <div className="container mx-auto">
         {/* Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-12 sm:mb-16">
           <Badge className="mb-4 bg-blue-100 text-blue-800">
             <Award className="w-3 h-3 mr-1" />
             Transparent Pricing
           </Badge>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             Simple, Transparent Pricing
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">
             Choose the plan that works best for your needs
           </p>
         </div>
 
         <Tabs value={selectedCategory} onValueChange={(value) => setSelectedCategory(value as 'simple' | 'capacity' | 'commercial')}>
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-12">
-            <TabsTrigger value="simple" className="flex items-center gap-2">
-              <Home className="w-4 h-4" />
-              Standard Home
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-8 sm:mb-12 h-auto p-1">
+            <TabsTrigger value="simple" className="flex items-center gap-1 p-2 text-xs sm:text-sm">
+              <Home className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Standard Home</span>
+              <span className="sm:hidden">Home</span>
             </TabsTrigger>
-            <TabsTrigger value="capacity" className="flex items-center gap-2">
-              <Droplets className="w-4 h-4" />
-              By Capacity
+            <TabsTrigger value="capacity" className="flex items-center gap-1 p-2 text-xs sm:text-sm">
+              <Droplets className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">By Capacity</span>
+              <span className="sm:hidden">Capacity</span>
             </TabsTrigger>
-            <TabsTrigger value="commercial" className="flex items-center gap-2">
-              <Building className="w-4 h-4" />
-              Commercial
+            <TabsTrigger value="commercial" className="flex items-center gap-1 p-2 text-xs sm:text-sm">
+              <Building className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Commercial</span>
+              <span className="sm:hidden">Business</span>
             </TabsTrigger>
           </TabsList>
 
           {/* Simple Pricing - Your Existing Structure */}
-          <TabsContent value="simple" className="space-y-12">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-4xl mx-auto mb-8">
+          <TabsContent value="simple" className="space-y-8 sm:space-y-12">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 sm:p-6 max-w-4xl mx-auto mb-6 sm:mb-8">
               <div className="flex items-center gap-3 mb-3">
-                <Home className="w-6 h-6 text-blue-600" />
-                <h3 className="text-xl font-semibold text-blue-900">Standard Home Tank Pricing</h3>
+                <Home className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+                <h3 className="text-lg sm:text-xl font-semibold text-blue-900">Standard Home Tank Pricing</h3>
               </div>
-              <p className="text-blue-700">
+              <p className="text-blue-700 text-sm sm:text-base">
                 Perfect for regular home water tanks up to 500 liters. Simple, transparent pricing with no hidden charges.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
               {simpleHomePricing.map((plan, index) => (
                 <Card 
                   key={index} 
@@ -90,51 +93,51 @@ export default function HybridPricingSection() {
                   }`}
                 >
                   {plan.badge && (
-                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
-                      <Badge className="bg-blue-500 text-white px-3 py-1">
+                    <div className="absolute -top-3 sm:-top-4 left-1/2 transform -translate-x-1/2 z-10">
+                      <Badge className="bg-blue-500 text-white px-2 sm:px-3 py-1 text-xs">
                         {plan.badge === 'Most Popular' && <Star className="w-3 h-3 mr-1" />}
                         {plan.badge}
                       </Badge>
                     </div>
                   )}
-                  <CardHeader className="text-center pb-4">
-                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      {plan.name === 'QR Code Sticker' && <QrCode className="w-8 h-8 text-blue-600" />}
-                      {plan.name === 'Basic Plan' && <Droplets className="w-8 h-8 text-blue-600" />}
-                      {plan.name === 'Premium Plan' && <Shield className="w-8 h-8 text-blue-600" />}
-                      {plan.name === 'One-Time Clean' && <Zap className="w-8 h-8 text-blue-600" />}
+                  <CardHeader className="text-center pb-3 sm:pb-4">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                      {plan.name === 'QR Code Sticker' && <QrCode className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />}
+                      {plan.name === 'Basic Plan' && <Droplets className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />}
+                      {plan.name === 'Premium Plan' && <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />}
+                      {plan.name === 'One-Time Clean' && <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />}
                     </div>
-                    <CardTitle className="text-xl">{plan.name}</CardTitle>
-                    <div className="text-3xl font-bold text-gray-900">
+                    <CardTitle className="text-base sm:text-lg lg:text-xl">{plan.name}</CardTitle>
+                    <div className="text-2xl sm:text-3xl font-bold text-gray-900">
                       ₹{plan.price}
-                      {plan.name.includes('Plan') && <span className="text-lg font-normal">/month</span>}
+                      {plan.name.includes('Plan') && <span className="text-sm sm:text-lg font-normal">/month</span>}
                     </div>
-                    <CardDescription>{plan.description}</CardDescription>
+                    <CardDescription className="text-sm sm:text-base">{plan.description}</CardDescription>
                     {plan.name.includes('Plan') && (
                       <div className="mt-2">
-                        <Badge className="bg-green-100 text-green-800">
+                        <Badge className="bg-green-100 text-green-800 text-xs">
                           Save ₹{plan.name === 'Basic Plan' ? '180' : '389'} per year
                         </Badge>
                       </div>
                     )}
                     {plan.badge && plan.badge.includes('Market price') && (
                       <div className="mt-2">
-                        <Badge className="bg-red-100 text-red-800">
+                        <Badge className="bg-red-100 text-red-800 text-xs">
                           {plan.badge}
                         </Badge>
                       </div>
                     )}
                   </CardHeader>
                   <CardContent>
-                    <ul className="space-y-3">
+                    <ul className="space-y-2 sm:space-y-3">
                       {plan.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-center text-sm">
-                          <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+                        <li key={idx} className="flex items-center text-xs sm:text-sm">
+                          <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 mr-2 flex-shrink-0" />
                           {feature}
                         </li>
                       ))}
                     </ul>
-                    <Button className="w-full mt-6" variant={plan.popular ? 'default' : 'outline'}>
+                    <Button className="w-full mt-4 sm:mt-6" variant={plan.popular ? 'default' : 'outline'}>
                       Select {plan.name}
                     </Button>
                   </CardContent>
