@@ -1,0 +1,332 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "postgresql"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication and user management
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String
+  phone       String
+  role        UserRole @default(USER)
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  tanks       Tank[]
+  cleaner     Cleaner?
+  cleaningRequests CleaningRequest[]
+  payments     Payment[]
+  subscriptions Subscription[]
+  feedbacks    Feedback[]
+  wallet       Wallet?
+
+  @@map("users")
+}
+
+// Cleaner model for service providers
+model Cleaner {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  experience    String
+  serviceArea   String
+  rating        Float    @default(0)
+  totalJobs     Int      @default(0)
+  isAvailable   Boolean  @default(true)
+  bio           String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cleaningRecords CleaningRecord[]
+  earnings       Earning[]
+
+  @@map("cleaners")
+}
+
+// Tank model for water tank management
+model Tank {
+  id                String   @id @default(cuid())
+  userId            String
+  name              String
+  type              TankType
+  capacity          String
+  location          String
+  installationDate  DateTime @default(now())
+  lastCleanedDate   DateTime?
+  nextDueDate       DateTime?
+  hygieneScore      Float?   @default(0)
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  qrCode            QrCode?
+  cleaningRecords   CleaningRecord[]
+  cleaningRequests  CleaningRequest[]
+
+  @@map("tanks")
+}
+
+// QR Code model for tank identification
+model QrCode {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  tankId      String   @unique
+  isGenerated Boolean  @default(false)
+  isPaid      Boolean  @default(false)
+  generatedAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  tank        Tank    @relation(fields: [tankId], references: [id], onDelete: Cascade)
+
+  @@map("qr_codes")
+}
+
+// Cleaning Request model for service booking
+model CleaningRequest {
+  id              String        @id @default(cuid())
+  userId          String
+  tankId          String
+  cleaningType    CleaningType
+  requestedDate    DateTime      @default(now())
+  scheduledDate    DateTime
+  preferredTime   String        @default("10:00 AM")
+  status          RequestStatus @default(PENDING)
+  urgencyLevel    Int           @default(1)
+  assignedCleanerId String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tank            Tank            @relation(fields: [tankId], references: [id], onDelete: Cascade)
+  assignedCleaner Cleaner?        @relation(fields: [assignedCleanerId], references: [id])
+  cleaningRecords CleaningRecord[]
+  payments         Payment[]
+
+  @@map("cleaning_requests")
+}
+
+// Cleaning Record model for service completion
+model CleaningRecord {
+  id                String   @id @default(cuid())
+  tankId            String
+  cleanerId         String
+  requestId         String?  @unique
+  cleaningType      CleaningType
+  cleanedAt         DateTime
+  duration          Int?     // Minutes
+  beforePhotos      String?  // JSON string of photo URLs
+  afterPhotos       String?  // JSON string of photo URLs
+  notes             String?
+  hygieneScore      Float?   @default(0)
+  isVerified        Boolean  @default(false)
+  verifiedBy        String?  // Admin ID
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  tank              Tank            @relation(fields: [tankId], references: [id], onDelete: Cascade)
+  cleaner           Cleaner         @relation(fields: [cleanerId], references: [id], onDelete: Cascade)
+  request           CleaningRequest? @relation(fields: [requestId], references: [id])
+  feedbacks         Feedback[]
+
+  @@map("cleaning_records")
+}
+
+// Payment model for financial transactions
+model Payment {
+  id              String        @id @default(cuid())
+  userId          String
+  amount          Float
+  type            PaymentType
+  status          PaymentStatus @default(PENDING)
+  paymentMethod   String
+  transactionId   String        @unique
+  requestId       String?
+  subscriptionId  String?
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  request         CleaningRequest? @relation(fields: [requestId], references: [id])
+  subscription    Subscription?    @relation(fields: [subscriptionId], references: [id])
+
+  @@map("payments")
+}
+
+// Subscription model for recurring services
+model Subscription {
+  id                String   @id @default(cuid())
+  userId            String
+  plan              SubscriptionPlan
+  amount            Float
+  startDate         DateTime @default(now())
+  endDate           DateTime
+  isActive          Boolean  @default(true)
+  autoRenew         Boolean  @default(false)
+  cleaningFrequency Int      @default(1) // Number of cleanings per month
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments   Payment[]
+
+  @@map("subscriptions")
+}
+
+// Feedback model for service ratings
+model Feedback {
+  id                String   @id @default(cuid())
+  userId            String
+  cleaningRecordId  String
+  cleanerId         String
+  rating            Int      @db.SmallInt
+  comment           String?
+  isPublic          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cleaningRecord   CleaningRecord  @relation(fields: [cleaningRecordId], references: [id], onDelete: Cascade)
+  cleaner          Cleaner         @relation(fields: [cleanerId], references: [id], onDelete: Cascade)
+
+  @@map("feedbacks")
+}
+
+// Earning model for cleaner payments
+model Earning {
+  id          String   @id @default(cuid())
+  cleanerId   String
+  amount      Float
+  commission  Float
+  netAmount   Float
+  earnedAt    DateTime @default(now())
+  isPaid      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  cleaner     Cleaner @relation(fields: [cleanerId], references: [id], onDelete: Cascade)
+
+  @@map("earnings")
+}
+
+// Wallet model for digital payments
+model Wallet {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  balance     Float    @default(0)
+  currency    String   @default("INR")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  walletBalances    WalletBalance[]
+  transactions      Transaction[]
+
+  @@map("wallets")
+}
+
+// Wallet Balance model for tracking wallet transactions
+model WalletBalance {
+  id              String   @id @default(cuid())
+  walletId        String
+  balance         Float
+  transactionType  String   // CREDIT, DEBIT
+  description     String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  wallet          Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@map("wallet_balances")
+}
+
+// Transaction model for wallet operations
+model Transaction {
+  id              String   @id @default(cuid())
+  walletId        String
+  amount          Float
+  type            String   // CREDIT, DEBIT
+  description     String
+  status          String   @default("PENDING")
+  transactionId   String   @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  wallet          Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@map("transactions")
+}
+
+// Enums for field types
+enum UserRole {
+  ADMIN
+  USER
+  CLEANER
+}
+
+enum TankType {
+  OVERHEAD
+  UNDERGROUND
+  SINTANK
+}
+
+enum CleaningType {
+  BASIC
+  DEEP
+  EMERGENCY
+}
+
+enum RequestStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentType {
+  CLEANING
+  SUBSCRIPTION
+  REFUND
+  WALLET_TOPUP
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum SubscriptionPlan {
+  BASIC
+  PREMIUM
+  ENTERPRISE
+}

@@ -1,28 +1,32 @@
+// New Booking Page
+// Page: /bookings/new
+
 'use client'
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { 
-  Droplets, 
-  ArrowLeft, 
   Calendar, 
   Clock, 
-  AlertCircle, 
+  MapPin, 
+  User, 
+  CreditCard, 
+  ArrowLeft,
   CheckCircle,
-  CreditCard,
-  MapPin,
-  User,
-  Star
+  AlertCircle,
+  Droplets,
+  Phone,
+  Mail
 } from "lucide-react"
 
 interface Tank {
@@ -31,28 +35,67 @@ interface Tank {
   type: string
   capacity?: string
   location: string
-  qrCode: {
-    code: string
-    isPaid: boolean
-  }
+  lastCleanedDate?: string
+  hygieneScore?: number
 }
 
-export default function NewBooking() {
+interface CleaningType {
+  id: string
+  name: string
+  description: string
+  duration: number
+  price: number
+  features: string[]
+}
+
+function NewBookingContent() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const tankId = searchParams.get('tankId')
+  
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
-  const [tanks, setTanks] = useState<Tank[]>([])
-  const [bookingCreated, setBookingCreated] = useState<any>(null)
+  const [selectedTank, setSelectedTank] = useState<Tank | null>(null)
+  const [userTanks, setUserTanks] = useState<Tank[]>([])
+  const [selectedCleaningType, setSelectedCleaningType] = useState<CleaningType | null>(null)
   const [formData, setFormData] = useState({
-    tankId: "",
-    cleaningType: "",
-    scheduledDate: "",
+    tankId: tankId || "",
+    cleaningTypeId: "",
+    preferredDate: "",
     preferredTime: "",
-    notes: "",
-    urgencyLevel: "1"
+    specialInstructions: "",
+    contactPhone: "",
+    contactEmail: ""
   })
+
+  const cleaningTypes: CleaningType[] = [
+    {
+      id: "basic",
+      name: "BASIC",
+      description: "Standard cleaning with basic sanitization",
+      duration: 90,
+      price: 699,
+      features: ["Tank inspection", "Basic cleaning", "Sanitization", "Water testing"]
+    },
+    {
+      id: "deep",
+      name: "DEEP",
+      description: "Comprehensive cleaning with advanced sanitization",
+      duration: 120,
+      price: 1299,
+      features: ["Tank inspection", "Deep cleaning", "Advanced sanitization", "Water testing", "Sludge removal"]
+    },
+    {
+      id: "emergency",
+      name: "EMERGENCY",
+      description: "Urgent cleaning with priority response",
+      duration: 60,
+      price: 1999,
+      features: ["Priority response", "Emergency cleaning", "Advanced sanitization", "Water testing", "Same day service"]
+    }
+  ]
 
   useEffect(() => {
     if (status === "loading") return
@@ -67,45 +110,82 @@ export default function NewBooking() {
       return
     }
 
-    // Load user's tanks
-    loadTanks()
-  }, [session, status, router])
+    loadUserTanks()
+  }, [session, status, router, tankId])
 
-  const loadTanks = async () => {
+  const loadUserTanks = async () => {
     try {
-      const response = await fetch('/api/tanks')
-      const result = await response.json()
+      // Mock user tanks data
+      const mockTanks: Tank[] = [
+        {
+          id: "1",
+          name: "Main Water Tank",
+          type: "OVERHEAD",
+          capacity: "1000 Liters",
+          location: "Rooftop - Building A",
+          lastCleanedDate: "2024-01-15",
+          hygieneScore: 4.5
+        },
+        {
+          id: "2",
+          name: "Backup Tank",
+          type: "UNDERGROUND",
+          capacity: "500 Liters",
+          location: "Backyard",
+          lastCleanedDate: "2023-12-20",
+          hygieneScore: 3.8
+        }
+      ]
+
+      setUserTanks(mockTanks)
       
-      if (response.ok) {
-        // Filter tanks that have paid QR codes
-        const paidTanks = result.tanks.filter((tank: Tank) => tank.qrCode.isPaid)
-        setTanks(paidTanks)
+      // If tankId is provided, select that tank
+      if (tankId) {
+        const tank = mockTanks.find(t => t.id === tankId)
+        if (tank) {
+          setSelectedTank(tank)
+          setFormData(prev => ({ ...prev, tankId: tank.id }))
+        }
       }
     } catch (error) {
-      console.error("Failed to load tanks:", error)
+      console.error("Failed to load user tanks:", error)
     }
   }
 
-  const handleChange = (field: string, value: string) => {
+  const handleTankChange = (tankId: string) => {
+    const tank = userTanks.find(t => t.id === tankId)
+    setSelectedTank(tank || null)
+    setFormData(prev => ({ ...prev, tankId }))
+  }
+
+  const handleCleaningTypeChange = (typeId: string) => {
+    const cleaningType = cleaningTypes.find(t => t.id === typeId)
+    setSelectedCleaningType(cleaningType || null)
+    setFormData(prev => ({ ...prev, cleaningTypeId: typeId }))
+  }
+
+  const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     setError("")
   }
 
   const validateForm = () => {
-    if (!formData.tankId || !formData.cleaningType || !formData.scheduledDate) {
-      setError("Please fill in all required fields")
+    if (!formData.tankId) {
+      setError("Please select a tank")
       return false
     }
-
-    const scheduledDate = new Date(formData.scheduledDate)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    if (scheduledDate < today) {
-      setError("Scheduled date cannot be in the past")
+    if (!formData.cleaningTypeId) {
+      setError("Please select a cleaning type")
       return false
     }
-
+    if (!formData.preferredDate) {
+      setError("Please select a preferred date")
+      return false
+    }
+    if (!formData.preferredTime) {
+      setError("Please select a preferred time")
+      return false
+    }
     return true
   }
 
@@ -119,55 +199,29 @@ export default function NewBooking() {
     setSuccess("")
 
     try {
-      const response = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        setError(result.error || 'Failed to create booking')
-        return
+      // Mock booking creation
+      const bookingData = {
+        ...formData,
+        userId: session.user.id,
+        status: "PENDING",
+        createdAt: new Date().toISOString()
       }
 
-      setBookingCreated(result.request)
-      setSuccess("Cleaning request created successfully!")
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000))
+
+      setSuccess("Booking request submitted successfully! We will contact you to confirm the appointment.")
+      
+      // Reset form after successful submission
+      setTimeout(() => {
+        router.push('/dashboard')
+      }, 3000)
+      
     } catch (error) {
-      setError("An error occurred. Please try again.")
+      console.error('Error creating booking:', error)
+      setError("Failed to create booking. Please try again.")
     } finally {
       setLoading(false)
-    }
-  }
-
-  const getCleaningPrice = (type: string) => {
-    switch (type) {
-      case 'BASIC': return 699
-      case 'DEEP': return 899
-      case 'EMERGENCY': return 1299
-      default: return 0
-    }
-  }
-
-  const getCleaningDescription = (type: string) => {
-    switch (type) {
-      case 'BASIC': return 'Standard cleaning with basic sanitization'
-      case 'DEEP': return 'Thorough cleaning with sediment removal and disinfection'
-      case 'EMERGENCY': return 'Urgent cleaning service with priority handling'
-      default: return ''
-    }
-  }
-
-  const getSelectedTank = () => {
-    return tanks.find(tank => tank.id === formData.tankId)
-  }
-
-  const proceedToPayment = () => {
-    if (bookingCreated) {
-      router.push(`/payment?booking=${bookingCreated.id}`)
     }
   }
 
@@ -189,12 +243,15 @@ export default function NewBooking() {
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/dashboard" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Droplets className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900">QR Tanki</span>
-            </Link>
+            <div className="flex items-center space-x-4">
+              <Link href="/dashboard" className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <Droplets className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-xl font-bold text-gray-900 hidden sm:block">QR Tanki</span>
+                <span className="text-lg font-bold text-gray-900 sm:hidden">QT</span>
+              </Link>
+            </div>
             <Link href="/dashboard">
               <Button variant="outline">
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -206,7 +263,7 @@ export default function NewBooking() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 max-w-2xl">
+      <main className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Book Cleaning Service
@@ -216,258 +273,221 @@ export default function NewBooking() {
           </p>
         </div>
 
-        {!bookingCreated ? (
-          <Card>
-            <CardHeader>
-              <CardTitle>Service Details</CardTitle>
-              <CardDescription>
-                Provide details about the cleaning service you need
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
-                
-                {success && (
-                  <Alert className="border-green-200 bg-green-50 text-green-800">
-                    <CheckCircle className="h-4 w-4" />
-                    <AlertDescription>{success}</AlertDescription>
-                  </Alert>
-                )}
-
-                {tanks.length === 0 ? (
-                  <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      You need to add a tank with a paid QR code before booking a cleaning service.
-                      <Link href="/tanks/new" className="text-blue-600 hover:underline ml-1">
-                        Add a tank now
-                      </Link>
-                    </AlertDescription>
-                  </Alert>
-                ) : (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="tankId">Select Tank *</Label>
-                      <Select value={formData.tankId} onValueChange={(value) => handleChange("tankId", value)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a tank" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {tanks.map((tank) => (
-                            <SelectItem key={tank.id} value={tank.id}>
-                              {tank.name} - {tank.type} ({tank.location})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {getSelectedTank() && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <h4 className="font-medium text-blue-900 mb-2">Selected Tank:</h4>
-                        <div className="text-sm text-blue-800 space-y-1">
-                          <p><strong>Name:</strong> {getSelectedTank()?.name}</p>
-                          <p><strong>Type:</strong> {getSelectedTank()?.type}</p>
-                          <p><strong>Capacity:</strong> {getSelectedTank()?.capacity || 'Not specified'}</p>
-                          <p><strong>Location:</strong> {getSelectedTank()?.location}</p>
-                          <p><strong>QR Code:</strong> {getSelectedTank()?.qrCode.code}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="space-y-2">
-                      <Label htmlFor="cleaningType">Cleaning Type *</Label>
-                      <Select value={formData.cleaningType} onValueChange={(value) => handleChange("cleaningType", value)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select cleaning type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="BASIC">
-                            <div className="flex items-center justify-between w-full">
-                              <span>Basic Cleaning</span>
-                              <Badge variant="outline" className="ml-2">₹699</Badge>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="DEEP">
-                            <div className="flex items-center justify-between w-full">
-                              <span>Deep Cleaning</span>
-                              <Badge variant="outline" className="ml-2">₹899</Badge>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="EMERGENCY">
-                            <div className="flex items-center justify-between w-full">
-                              <span>Emergency Cleaning</span>
-                              <Badge variant="outline" className="ml-2">₹1,299</Badge>
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {formData.cleaningType && (
-                        <p className="text-sm text-gray-600">
-                          {getCleaningDescription(formData.cleaningType)}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="scheduledDate">Preferred Date *</Label>
-                        <Input
-                          id="scheduledDate"
-                          type="date"
-                          value={formData.scheduledDate}
-                          onChange={(e) => handleChange("scheduledDate", e.target.value)}
-                          min={new Date().toISOString().split('T')[0]}
-                          required
-                          disabled={loading}
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="preferredTime">Preferred Time</Label>
-                        <Input
-                          id="preferredTime"
-                          type="time"
-                          value={formData.preferredTime}
-                          onChange={(e) => handleChange("preferredTime", e.target.value)}
-                          disabled={loading}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="urgencyLevel">Urgency Level</Label>
-                      <Select value={formData.urgencyLevel} onValueChange={(value) => handleChange("urgencyLevel", value)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select urgency level" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1">Low - Can wait</SelectItem>
-                          <SelectItem value="2">Medium - Within a week</SelectItem>
-                          <SelectItem value="3">High - Within 3 days</SelectItem>
-                          <SelectItem value="4">Urgent - Within 24 hours</SelectItem>
-                          <SelectItem value="5">Emergency - As soon as possible</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="notes">Additional Notes (Optional)</Label>
-                      <Textarea
-                        id="notes"
-                        placeholder="Any specific requirements or instructions for the cleaner..."
-                        value={formData.notes}
-                        onChange={(e) => handleChange("notes", e.target.value)}
-                        disabled={loading}
-                        rows={3}
-                      />
-                    </div>
-
-                    {formData.cleaningType && (
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                        <h4 className="font-medium text-yellow-900 mb-2">Payment Information:</h4>
-                        <div className="text-sm text-yellow-800">
-                          <p><strong>Service:</strong> {formData.cleaningType} Cleaning</p>
-                          <p><strong>Price:</strong> ₹{getCleaningPrice(formData.cleaningType)}</p>
-                          <p><strong>Payment:</strong> Required to confirm booking</p>
-                        </div>
-                      </div>
-                    )}
-
-                    <Button type="submit" className="w-full" disabled={loading}>
-                      {loading ? "Creating Booking..." : "Create Booking Request"}
-                    </Button>
-                  </>
-                )}
-              </form>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-6">
-            <Card>
-              <CardHeader className="text-center">
-                <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                  <CheckCircle className="w-8 h-8 text-green-600" />
-                </div>
-                <CardTitle className="text-2xl">Booking Request Created!</CardTitle>
-                <CardDescription>
-                  Your cleaning service has been scheduled
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="font-medium mb-3">Booking Details:</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Request ID:</span>
-                      <span className="font-mono">{bookingCreated.id.slice(0, 8)}...</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Tank:</span>
-                      <span>{bookingCreated.tank.name}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Service Type:</span>
-                      <span>{bookingCreated.cleaningType}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Scheduled Date:</span>
-                      <span>{new Date(bookingCreated.scheduledDate).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Preferred Time:</span>
-                      <span>{bookingCreated.preferredTime || 'Not specified'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Status:</span>
-                      <Badge variant="secondary">{bookingCreated.status}</Badge>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-medium text-blue-900 mb-2">What's Next?</h4>
-                  <ul className="text-sm text-blue-800 space-y-1">
-                    <li>1. Complete the payment to confirm your booking</li>
-                    <li>2. You'll receive a confirmation with cleaner details</li>
-                    <li>3. Cleaner will contact you before the scheduled time</li>
-                    <li>4. Service will be performed as per your requirements</li>
-                    <li>5. You'll receive photos and hygiene score after cleaning</li>
-                  </ul>
-                </div>
-
-                <div className="text-center space-y-4">
-                  <div className="text-2xl font-bold">
-                    Total Amount: ₹{getCleaningPrice(bookingCreated.cleaningType)}
-                  </div>
-                  
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <Button variant="outline" onClick={() => setBookingCreated(null)}>
-                      Book Another Service
-                    </Button>
-                    <Button onClick={proceedToPayment}>
-                      <CreditCard className="w-4 h-4 mr-2" />
-                      Pay Now
-                    </Button>
-                  </div>
-
-                  <Link href="/dashboard">
-                    <Button variant="outline" className="w-full">
-                      Go to Dashboard
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+        {success && (
+          <Alert className="mb-6 border-green-200 bg-green-50 text-green-800">
+            <CheckCircle className="h-4 w-4" />
+            <AlertDescription>{success}</AlertDescription>
+          </Alert>
         )}
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Booking Details</CardTitle>
+            <CardDescription>
+              Provide details for your cleaning service booking
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              {/* Tank Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="tankId">Select Tank *</Label>
+                <Select value={formData.tankId} onValueChange={handleTankChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a tank" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {userTanks.map((tank) => (
+                      <SelectItem key={tank.id} value={tank.id}>
+                        {tank.name} - {tank.type} ({tank.capacity})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedTank && (
+                  <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">{selectedTank.name}</p>
+                        <p className="text-sm text-gray-600">{selectedTank.location}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-600">Last cleaned:</p>
+                        <p className="font-medium">
+                          {selectedTank.lastCleanedDate || "Never"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Cleaning Type Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="cleaningTypeId">Cleaning Type *</Label>
+                <Select value={formData.cleaningTypeId} onValueChange={handleCleaningTypeChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select cleaning type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cleaningTypes.map((type) => (
+                      <SelectItem key={type.id} value={type.id}>
+                        <div>
+                          <div className="font-medium">{type.name}</div>
+                          <div className="text-sm text-gray-600">{type.description}</div>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedCleaningType && (
+                  <div className="mt-2 p-3 bg-blue-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <p className="font-medium">{selectedCleaningType.name}</p>
+                        <p className="text-sm text-gray-600">{selectedCleaningType.description}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-blue-600">₹{selectedCleaningType.price}</p>
+                        <p className="text-sm text-gray-600">{selectedCleaningType.duration} mins</p>
+                      </div>
+                    </div>
+                    <div className="border-t pt-2">
+                      <p className="text-sm font-medium text-gray-700 mb-1">Included:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {selectedCleaningType.features.map((feature, index) => (
+                          <Badge key={index} variant="secondary" className="text-xs">
+                            {feature}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Preferred Date and Time */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="preferredDate">Preferred Date *</Label>
+                  <Input
+                    id="preferredDate"
+                    type="date"
+                    value={formData.preferredDate}
+                    onChange={(e) => handleInputChange("preferredDate", e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="preferredTime">Preferred Time *</Label>
+                  <Select value={formData.preferredTime} onValueChange={(value) => handleInputChange("preferredTime", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="09:00">9:00 AM</SelectItem>
+                      <SelectItem value="10:00">10:00 AM</SelectItem>
+                      <SelectItem value="11:00">11:00 AM</SelectItem>
+                      <SelectItem value="12:00">12:00 PM</SelectItem>
+                      <SelectItem value="14:00">2:00 PM</SelectItem>
+                      <SelectItem value="15:00">3:00 PM</SelectItem>
+                      <SelectItem value="16:00">4:00 PM</SelectItem>
+                      <SelectItem value="17:00">5:00 PM</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Contact Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Contact Information</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="contactPhone">Phone Number *</Label>
+                    <Input
+                      id="contactPhone"
+                      type="tel"
+                      placeholder="+91 98765 43210"
+                      value={formData.contactPhone}
+                      onChange={(e) => handleInputChange("contactPhone", e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="contactEmail">Email Address</Label>
+                    <Input
+                      id="contactEmail"
+                      type="email"
+                      placeholder="your@email.com"
+                      value={formData.contactEmail}
+                      onChange={(e) => handleInputChange("contactEmail", e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Special Instructions */}
+              <div className="space-y-2">
+                <Label htmlFor="specialInstructions">Special Instructions (Optional)</Label>
+                <Textarea
+                  id="specialInstructions"
+                  placeholder="Any special requirements or instructions for the cleaning service..."
+                  value={formData.specialInstructions}
+                  onChange={(e) => handleInputChange("specialInstructions", e.target.value)}
+                  rows={3}
+                />
+              </div>
+
+              {/* Price Summary */}
+              {selectedCleaningType && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="font-medium mb-2">Price Summary</h3>
+                  <div className="space-y-1">
+                    <div className="flex justify-between">
+                      <span>Service ({selectedCleaningType.name})</span>
+                      <span>₹{selectedCleaningType.price}</span>
+                    </div>
+                    <div className="flex justify-between font-medium text-lg">
+                      <span>Total Amount</span>
+                      <span className="text-blue-600">₹{selectedCleaningType.price}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Submitting..." : "Submit Booking Request"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </main>
     </div>
+  )
+}
+
+// Loading fallback component
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+    </div>
+  )
+}
+
+// Main component with Suspense boundary
+export default function NewBookingPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <NewBookingContent />
+    </Suspense>
   )
 }
