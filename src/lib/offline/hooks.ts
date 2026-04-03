@@ -12,29 +12,34 @@ export function useOffline() {
   const [isOffline, setIsOffline] = useState(false)
 
   useEffect(() => {
-    // Check initial online status
-    setIsOnline(navigator.onLine)
-    setIsOffline(!navigator.onLine)
+    // Set initial online status from navigator state
+    const updateOnlineStatus = () => {
+      const online = navigator.onLine;
+      setIsOnline(online);
+      setIsOffline(!online);
+    };
+
+    updateOnlineStatus();
 
     // Listen for online/offline events
     const handleOnline = () => {
-      setIsOnline(true)
-      setIsOffline(false)
-    }
+      setIsOnline(true);
+      setIsOffline(false);
+    };
 
     const handleOffline = () => {
-      setIsOnline(false)
-      setIsOffline(true)
-    }
+      setIsOnline(false);
+      setIsOffline(true);
+    };
 
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
     return () => {
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
-    }
-  }, [])
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const syncData = useCallback(async () => {
     // Mock sync functionality
