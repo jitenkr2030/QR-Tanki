@@ -1,0 +1,74 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3B82F6"/>
+      <stop offset="100%" style="stop-color:#1E40AF"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  
+  <!-- Water droplets pattern -->
+  <g opacity="0.1">
+    <circle cx="100" cy="100" r="20" fill="white"/>
+    <circle cx="200" cy="150" r="15" fill="white"/>
+    <circle cx="150" cy="200" r="25" fill="white"/>
+    <circle cx="300" cy="120" r="18" fill="white"/>
+    <circle cx="250" cy="180" r="22" fill="white"/>
+    <circle cx="350" cy="140" r="20" fill="white"/>
+    <circle cx="400" cy="100" r="15" fill="white"/>
+    <circle cx="450" cy="160" r="25" fill="white"/>
+    <circle cx="500" cy="130" r="18" fill="white"/>
+    
+    <circle cx="700" cy="450" r="20" fill="white"/>
+    <circle cx="800" cy="500" r="15" fill="white"/>
+    <circle cx="750" cy="550" r="25" fill="white"/>
+    <circle cx="850" cy="480" r="18" fill="white"/>
+    <circle cx="900" cy="520" r="22" fill="white"/>
+    <circle cx="950" cy="490" r="20" fill="white"/>
+    <circle cx="1000" cy="450" r="15" fill="white"/>
+    <circle cx="1050" cy="510" r="25" fill="white"/>
+    <circle cx="1100" cy="480" r="18" fill="white"/>
+  </g>
+  
+  <!-- Main content -->
+  <g>
+    <!-- Logo/Icon -->
+    <rect x="500" y="180" width="200" height="200" rx="50" fill="white" opacity="0.95"/>
+    <path d="M600 230C585.673 230 575 240.673 575 255V275C575 291.568 587.432 305.502 600 312.498L600 312.498C612.568 305.502 625 291.568 625 275V255C625 240.673 614.327 230 600 230Z" fill="#2563eb"/>
+    <path d="M560 260C548.954 260 540 268.954 540 280V320C540 331.046 548.954 340 560 340C571.046 340 580 331.046 580 320V280C580 268.954 571.046 260 560 260Z" fill="#2563eb" opacity="0.8"/>
+    <path d="M640 260C628.954 260 620 268.954 620 280V280C620 291.046 628.954 300 640 300C651.046 300 660 291.046 660 280V280C660 268.954 651.046 260 640 260Z" fill="#2563eb" opacity="0.8"/>
+    <path d="M600 320C588.954 320 580 328.954 580 340V380C580 391.046 588.954 400 600 400C611.046 400 620 391.046 620 380V340C620 328.954 611.046 320 600 320Z" fill="#2563eb" opacity="0.6"/>
+    
+    <!-- QR Tanki text -->
+    <text x="600" y="450" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="48" font-weight="bold">QR Tanki</text>
+  </g>
+  
+  <!-- Tagline -->
+  <text x="600" y="500" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="24" opacity="0.9">India's First QR-Based Water Tank Cleaning Platform</text>
+  
+  <!-- Features -->
+  <g fill="white" opacity="0.8">
+    <text x="200" y="250" text-anchor="middle" font-family="Arial, sans-serif" font-size="16">✓ QR Code Generation</text>
+    <text x="200" y="270" text-anchor="middle" font-family="Arial, sans-serif" font-size="16">✓ Professional Cleaning</text>
+    <text x="200" y="290" text-anchor="middle" font-family="Arial, sans-serif" font-size="16">✓ Digital Certificates</text>
+    
+    <text x="1000" y="250" text-anchor="middle" font-family="Arial, sans-serif" font-size="16">✓ Subscription Plans</text>
+    <text x="1000" y="270" text-anchor="middle" font-family="Arial, sans-serif" font-size="16">✓ Real-time Tracking</text>
+    <text x="1000" y="290" text-anchor="middle" font-family="Arial, sans-serif" font-size="16">✓ Mobile App Ready</text>
+  </g>
+  
+  <!-- Pricing preview -->
+  <g>
+    <rect x="480" y="530" width="80" height="40" rx="8" fill="white" opacity="0.9"/>
+    <text x="520" y="555" text-anchor="middle" fill="#2563eb" font-family="Arial, sans-serif" font-size="14" font-weight="bold">₹499</text>
+    
+    <rect x="580" y="530" width="80" height="40" rx="8" fill="white" opacity="0.9"/>
+    <text x="620" y="555" text-anchor="middle" fill="#2563eb" font-family="Arial, sans-serif" font-size="14" font-weight="bold">₹399</text>
+    
+    <rect x="680" y="530" width="80" height="40" rx="8" fill="white" opacity="0.9"/>
+    <text x="720" y="555" text-anchor="middle" fill="#2563eb" font-family="Arial, sans-serif" font-size="14" font-weight="bold">₹599</text>
+  </g>
+</svg>

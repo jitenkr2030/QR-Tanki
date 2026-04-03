@@ -1,0 +1,8 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="192" height="192" rx="48" fill="#2563eb"/>
+  <path d="M96 48C86.0589 48 78 56.0589 78 66V78C78 85.1597 84.0283 91.3126 88.6252 96L88.6252 96C84.0283 100.687 82 107.84 82 114V78C82 56.0589 86.0589 48 96 48Z" fill="white"/>
+  <path d="M72 72C64.268 72 58 78.268 58 86V106C58 113.732 64.268 120 72 120C79.732 120 86 113.732 86 106V86C86 78.268 79.732 72 72 72Z" fill="white" opacity="0.8"/>
+  <path d="M120 72C112.268 72 106 78.268 106 86V106C106 113.732 112.268 120 120 120C127.732 120 134 113.732 134 106V86C134 78.268 127.732 72 120 72Z" fill="white" opacity="0.8"/>
+  <path d="M96 108C88.268 108 82 114.268 82 122V144C82 151.732 88.268 158 96 158C103.732 158 110 151.732 110 144V122C110 114.268 103.732 108 96 108Z" fill="white" opacity="0.6"/>
+  <text x="96" y="176" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="bold">QT</text>
+</svg>
