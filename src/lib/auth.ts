@@ -35,12 +35,10 @@ const DEMO_CREDENTIALS = {
 }
 
 export const authOptions = {
-  // Only use adapter if DATABASE_URL is available
-  ...(process.env.DATABASE_URL && {
-    adapter: PrismaAdapter(getPrismaClient(), {
-      provider: "neon",
-    }),
-  }),
+  // Temporarily disable adapter to troubleshoot login issues
+  // ...(process.env.DATABASE_URL && {
+  //   adapter: PrismaAdapter(getPrismaClient()),
+  // }),
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -84,9 +82,36 @@ export const authOptions = {
           })
 
           if (!user) {
-            return null
+            // If user not found in database, check if it's a demo credential
+            const isValidDemoPassword = DEMO_CREDENTIALS[credentials.email as string] === credentials.password
+            
+            if (!isValidDemoPassword) {
+              return null
+            }
+
+            // Create the user in database for future logins
+            const newUser = await prisma.user.create({
+              data: {
+                email: credentials.email as string,
+                name: credentials.email.split('@')[0],
+                role: credentials.email.includes('admin') ? 'ADMIN' : 
+                      credentials.email.includes('cleaner') ? 'CLEANER' : 'USER',
+                phone: '+91 98765 43210',
+                isVerified: true,
+              }
+            })
+
+            return {
+              id: newUser.id,
+              email: newUser.email,
+              name: newUser.name,
+              role: newUser.role,
+              phone: newUser.phone,
+              isVerified: newUser.isVerified,
+            }
           }
 
+          // User exists, check demo password (for now)
           const isValidPassword = DEMO_CREDENTIALS[user.email as string] === credentials.password
 
           if (!isValidPassword) {
@@ -103,7 +128,22 @@ export const authOptions = {
           }
         } catch (error) {
           console.error('Auth error:', error)
-          return null
+          // Fallback to demo credentials if database fails
+          const isValidPassword = DEMO_CREDENTIALS[credentials.email as string] === credentials.password
+          
+          if (!isValidPassword) {
+            return null
+          }
+
+          return {
+            id: 'demo-' + credentials.email,
+            email: credentials.email,
+            name: credentials.email.split('@')[0],
+            role: credentials.email.includes('admin') ? 'ADMIN' : 
+                  credentials.email.includes('cleaner') ? 'CLEANER' : 'USER',
+            phone: '+91 98765 43210',
+            isVerified: true,
+          }
         }
       }
     })
