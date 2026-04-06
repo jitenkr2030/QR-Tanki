@@ -5,6 +5,7 @@ import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { PrismaClient } from "@prisma/client"
+import bcrypt from 'bcryptjs'
 
 // Safe PrismaClient initialization
 function getPrismaClient() {
@@ -35,10 +36,10 @@ const DEMO_CREDENTIALS = {
 }
 
 export const authOptions = {
-  // Temporarily disable adapter to troubleshoot login issues
-  // ...(process.env.DATABASE_URL && {
-  //   adapter: PrismaAdapter(getPrismaClient()),
-  // }),
+  // Use PrismaAdapter for database sessions
+  ...(process.env.DATABASE_URL && {
+    adapter: PrismaAdapter(getPrismaClient()),
+  }),
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -49,25 +50,6 @@ export const authOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           return null
-        }
-
-        // If no database URL, use demo credentials for development
-        if (!process.env.DATABASE_URL) {
-          const isValidPassword = DEMO_CREDENTIALS[credentials.email as string] === credentials.password
-          
-          if (!isValidPassword) {
-            return null
-          }
-
-          return {
-            id: 'demo-' + credentials.email,
-            email: credentials.email,
-            name: credentials.email.split('@')[0],
-            role: credentials.email.includes('admin') ? 'ADMIN' : 
-                  credentials.email.includes('cleaner') ? 'CLEANER' : 'USER',
-            phone: '+91 98765 43210',
-            isVerified: true,
-          }
         }
 
         // Production database authentication
@@ -111,21 +93,81 @@ export const authOptions = {
             }
           }
 
-          // User exists, check demo password (for now)
-          const isValidPassword = DEMO_CREDENTIALS[user.email as string] === credentials.password
-
-          if (!isValidPassword) {
-            return null
+          // User exists in database
+          // First check if it's a demo credential (for backward compatibility)
+          if (DEMO_CREDENTIALS[user.email as string]) {
+            const isValidDemoPassword = DEMO_CREDENTIALS[user.email as string] === credentials.password
+            
+            if (isValidDemoPassword) {
+              return {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                role: user.role,
+                phone: user.phone,
+                isVerified: user.isVerified,
+              }
+            }
           }
 
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: user.role,
-            phone: user.phone,
-            isVerified: user.isVerified,
+          // For existing database users (like jitenderkr2030@gmail.com)
+          // Check if user has a password hash
+          if (user.password) {
+            const isValidPassword = await bcrypt.compare(credentials.password as string, user.password)
+            
+            if (isValidPassword) {
+              return {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                role: user.role,
+                phone: user.phone,
+                isVerified: user.isVerified,
+              }
+            }
+          } else {
+            // For users without password (migrated from old system),
+            // check if they're in our known existing users list
+            const knownExistingUsers = [
+              'jitenderkr2030@gmail.com',
+              // Add other known existing users here
+            ]
+            
+            if (knownExistingUsers.includes(user.email as string)) {
+              // Temporary: Allow access with basic password check
+              // In production, these users should be prompted to set a proper password
+              console.log(`Authenticating existing user without password hash: ${user.email}`)
+              
+              // For now, allow access with a reasonable password
+              // This should be replaced with proper password setup
+              const tempPasswords = [
+                'Xxxxxxxxx', // The password you mentioned
+                // Add other temporary passwords if needed
+              ]
+              
+              if (tempPasswords.includes(credentials.password as string)) {
+                // Optionally hash and save the password for future use
+                // const hashedPassword = await bcrypt.hash(credentials.password as string, 12)
+                // await prisma.user.update({
+                //   where: { id: user.id },
+                //   data: { password: hashedPassword }
+                // })
+                
+                return {
+                  id: user.id,
+                  email: user.email,
+                  name: user.name,
+                  role: user.role,
+                  phone: user.phone,
+                  isVerified: user.isVerified,
+                }
+              }
+            }
           }
+
+          // If we reach here, password verification failed
+          return null
+          
         } catch (error) {
           console.error('Auth error:', error)
           // Fallback to demo credentials if database fails
