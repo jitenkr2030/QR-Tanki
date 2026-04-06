@@ -148,23 +148,27 @@ export default function Dashboard() {
   )
 
   useEffect(() => {
-    if (status === "loading") return
-    
-    if (!session) {
-      router.push('/auth/signin')
-      return
+    const initializeDashboard = async () => {
+      if (status === "loading") return
+      
+      if (!session) {
+        router.push('/auth/signin')
+        return
+      }
+
+      if (session.user.role !== 'USER') {
+        router.push(session.user.role === 'ADMIN' ? '/admin' : '/cleaner')
+        return
+      }
+
+      // Update state with cached data
+      setTanks(cachedTanks || [])
+      setCleaningHistory(cachedHistory || [])
+      await fetchStats()
+      setLoading(false)
     }
 
-    if (session.user.role !== 'USER') {
-      router.push(session.user.role === 'ADMIN' ? '/admin' : '/cleaner')
-      return
-    }
-
-    // Update state with cached data
-    setTanks(cachedTanks || [])
-    setCleaningHistory(cachedHistory || [])
-    await fetchStats()
-    setLoading(false)
+    initializeDashboard()
   }, [session, status, router, cachedTanks, cachedHistory])
 
   // Handle manual refresh
