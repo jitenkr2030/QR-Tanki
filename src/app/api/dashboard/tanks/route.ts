@@ -17,8 +17,7 @@ export async function GET(request: NextRequest) {
         userId: session.user.id
       },
       include: {
-        qrCode: true,
-        cleanings: {
+        cleaningRecords: {
           orderBy: {
             cleanedAt: 'desc'
           },
@@ -48,12 +47,12 @@ export async function GET(request: NextRequest) {
       type: tank.type,
       capacity: tank.capacity ? `${tank.capacity} Liters` : undefined,
       location: tank.location || 'Not specified',
-      lastCleanedDate: tank.cleanings[0]?.cleanedAt?.toISOString().split('T')[0] || undefined,
+      lastCleanedDate: tank.cleaningRecords[0]?.cleanedAt?.toISOString().split('T')[0] || undefined,
       nextDueDate: tank.nextDueDate?.toISOString().split('T')[0] || undefined,
-      hygieneScore: tank.cleanings[0]?.hygieneScore || undefined,
+      hygieneScore: tank.cleaningRecords[0]?.hygieneScore || undefined,
       qrCode: {
-        code: tank.qrCode?.code || `QT-${tank.id.slice(-6)}`,
-        isPaid: tank.qrCode?.isPaid || false
+        code: `QT-${tank.id.slice(-6)}`,
+        isPaid: false
       }
     }))
 

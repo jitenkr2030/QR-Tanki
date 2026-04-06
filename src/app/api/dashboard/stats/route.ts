@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
         userId: session.user.id
       },
       include: {
-        cleanings: {
+        cleaningRecords: {
           where: {
             cleanedAt: {
               gte: startOfLastMonth
@@ -48,18 +48,18 @@ export async function GET(request: NextRequest) {
 
     // Cleanings this month
     const cleaningsThisMonth = tanks.reduce((count, tank) => {
-      return count + tank.cleanings.filter(c => c.cleanedAt >= startOfMonth).length
+      return count + tank.cleaningRecords.filter(c => c.cleanedAt >= startOfMonth).length
     }, 0)
 
     // Cleanings last month
     const cleaningsLastMonth = tanks.reduce((count, tank) => {
-      return count + tank.cleanings.filter(c => 
+      return count + tank.cleaningRecords.filter(c => 
         c.cleanedAt >= startOfLastMonth && c.cleanedAt <= endOfLastMonth
       ).length
     }, 0)
 
     // Average hygiene score
-    const allCleanings = tanks.flatMap(tank => tank.cleanings)
+    const allCleanings = tanks.flatMap(tank => tank.cleaningRecords)
     const avgHygieneScore = allCleanings.length > 0 
       ? allCleanings.reduce((sum, c) => sum + (c.hygieneScore || 0), 0) / allCleanings.length
       : 0
