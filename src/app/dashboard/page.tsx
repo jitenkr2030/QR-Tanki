@@ -63,15 +63,25 @@ interface CleaningRecord {
   }
 }
 
+interface DashboardStats {
+  totalTanks: number
+  cleaningsThisMonth: number
+  cleaningsLastMonth: number
+  avgHygieneScore: number
+  nextCleaningDue: number | null
+  nextCleaningDueTank: string | null
+}
+
 export default function Dashboard() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { isOnline, isOffline, syncData } = useOffline()
   const [tanks, setTanks] = useState<Tank[]>([])
   const [cleaningHistory, setCleaningHistory] = useState<CleaningRecord[]>([])
+  const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Use cached data for tanks
+  // Fetch real tanks data
   const { 
     data: cachedTanks, 
     isLoading: tanksLoading, 
@@ -80,41 +90,43 @@ export default function Dashboard() {
   } = useCachedData<Tank[]>(
     'dashboard-tanks',
     async () => {
-      // Mock API call
-      return [
-        {
-          id: "1",
-          name: "Main Water Tank",
-          type: "Overhead",
-          capacity: "1000 Liters",
-          location: "Rooftop - Building A",
-          lastCleanedDate: "2024-01-15",
-          nextDueDate: "2024-02-15",
-          hygieneScore: 4.5,
-          qrCode: {
-            code: "QT-123456",
-            isPaid: true
-          }
-        },
-        {
-          id: "2", 
-          name: "Backup Tank",
-          type: "Underground",
-          capacity: "500 Liters",
-          location: "Backyard",
-          lastCleanedDate: "2023-12-20",
-          nextDueDate: "2024-01-20",
-          hygieneScore: 3.8,
-          qrCode: {
-            code: "QT-789012",
-            isPaid: true
-          }
+      try {
+        const response = await fetch('/api/dashboard/tanks')
+        if (!response.ok) {
+          throw new Error('Failed to fetch tanks')
         }
-      ]
+        return await response.json()
+      } catch (error) {
+        console.error('Error fetching tanks:', error)
+        return [] // Return empty array on error
+      }
     }
   )
 
-  // Use cached data for cleaning history
+  // Fetch dashboard stats
+  const fetchStats = async () => {
+    try {
+      const response = await fetch('/api/dashboard/stats')
+      if (!response.ok) {
+        throw new Error('Failed to fetch stats')
+      }
+      const statsData = await response.json()
+      setStats(statsData)
+    } catch (error) {
+      console.error('Error fetching stats:', error)
+      // Set default stats on error
+      setStats({
+        totalTanks: 0,
+        cleaningsThisMonth: 0,
+        cleaningsLastMonth: 0,
+        avgHygieneScore: 0,
+        nextCleaningDue: null,
+        nextCleaningDueTank: null
+      })
+    }
+  }
+
+  // Fetch real cleaning history
   const { 
     data: cachedHistory, 
     isLoading: historyLoading, 
@@ -122,31 +134,16 @@ export default function Dashboard() {
   } = useCachedData<CleaningRecord[]>(
     'dashboard-history',
     async () => {
-      // Mock API call
-      return [
-        {
-          id: "1",
-          cleaningType: "BASIC",
-          cleanedAt: "2024-01-15",
-          hygieneScore: 4.5,
-          cleaner: {
-            user: {
-              name: "Raj Kumar"
-            }
-          }
-        },
-        {
-          id: "2",
-          cleaningType: "DEEP", 
-          cleanedAt: "2023-12-20",
-          hygieneScore: 4.2,
-          cleaner: {
-            user: {
-              name: "Amit Singh"
-            }
-          }
+      try {
+        const response = await fetch('/api/dashboard/history')
+        if (!response.ok) {
+          throw new Error('Failed to fetch cleaning history')
         }
-      ]
+        return await response.json()
+      } catch (error) {
+        console.error('Error fetching cleaning history:', error)
+        return [] // Return empty array on error
+      }
     }
   )
 
@@ -166,6 +163,7 @@ export default function Dashboard() {
     // Update state with cached data
     setTanks(cachedTanks || [])
     setCleaningHistory(cachedHistory || [])
+    await fetchStats()
     setLoading(false)
   }, [session, status, router, cachedTanks, cachedHistory])
 
@@ -175,6 +173,7 @@ export default function Dashboard() {
     try {
       await refreshTanks()
       await refreshHistory()
+      await fetchStats()
       // Update state with fresh data
       setTanks(cachedTanks || [])
       setCleaningHistory(cachedHistory || [])
@@ -298,7 +297,7 @@ export default function Dashboard() {
               <Droplets className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{tanks.length}</div>
+              <div className="text-2xl font-bold">{stats?.totalTanks || 0}</div>
               <p className="text-xs text-muted-foreground">
                 Registered tanks
               </p>
@@ -311,9 +310,9 @@ export default function Dashboard() {
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">2</div>
+              <div className="text-2xl font-bold">{stats?.cleaningsThisMonth || 0}</div>
               <p className="text-xs text-muted-foreground">
-                +1 from last month
+                {stats && stats.cleaningsLastMonth > 0 ? `+${stats.cleaningsThisMonth - stats.cleaningsLastMonth} from last month` : 'No previous data'}
               </p>
             </CardContent>
           </Card>
@@ -324,9 +323,9 @@ export default function Dashboard() {
               <Star className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">4.2</div>
+              <div className="text-2xl font-bold">{stats?.avgHygieneScore || 'N/A'}</div>
               <p className="text-xs text-muted-foreground">
-                Good condition
+                {stats && stats.avgHygieneScore >= 4 ? 'Good condition' : stats && stats.avgHygieneScore > 0 ? 'Needs improvement' : 'No data'}
               </p>
             </CardContent>
           </Card>
@@ -337,9 +336,11 @@ export default function Dashboard() {
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">5 days</div>
+              <div className="text-2xl font-bold">
+                {stats?.nextCleaningDue ? `${stats.nextCleaningDue} days` : 'N/A'}
+              </div>
               <p className="text-xs text-muted-foreground">
-                Main Water Tank
+                {stats?.nextCleaningDueTank || 'No scheduled cleanings'}
               </p>
             </CardContent>
           </Card>
@@ -426,38 +427,54 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {tanks.slice(0, 3).map((tank) => (
-                    <div key={tank.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <Droplets className="w-5 h-5 text-blue-600" />
+                  {tanks.length > 0 ? (
+                    tanks.slice(0, 3).map((tank) => (
+                      <div key={tank.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <Droplets className="w-5 h-5 text-blue-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium">{tank.name}</h4>
+                            <p className="text-sm text-gray-600">{tank.type} • {tank.capacity}</p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="font-medium">{tank.name}</h4>
-                          <p className="text-sm text-gray-600">{tank.type} • {tank.capacity}</p>
+                        <div className="text-right">
+                          <Badge 
+                            variant={tank.hygieneScore && tank.hygieneScore >= 4 ? "default" : "secondary"}
+                            className="mb-2"
+                          >
+                            Score: {tank.hygieneScore || 'N/A'}
+                          </Badge>
+                          <p className="text-sm text-gray-600">
+                            Due: {tank.nextDueDate || 'Not scheduled'}
+                          </p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <Badge 
-                          variant={tank.hygieneScore && tank.hygieneScore >= 4 ? "default" : "secondary"}
-                          className="mb-2"
-                        >
-                          Score: {tank.hygieneScore || 'N/A'}
-                        </Badge>
-                        <p className="text-sm text-gray-600">
-                          Due: {tank.nextDueDate || 'Not scheduled'}
-                        </p>
-                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <Droplets className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No tanks registered</h3>
+                      <p className="text-gray-600 mb-4">Get started by adding your first water tank</p>
+                      <Link href="/tanks/new">
+                        <Button>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Your First Tank
+                        </Button>
+                      </Link>
                     </div>
-                  ))}
+                  )}
                 </div>
-                <div className="mt-4">
-                  <Link href="/tanks">
-                    <Button variant="outline" className="w-full">
-                      View All Tanks
-                    </Button>
-                  </Link>
-                </div>
+                {tanks.length > 0 && (
+                  <div className="mt-4">
+                    <Link href="/tanks">
+                      <Button variant="outline" className="w-full">
+                        View All Tanks
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -474,62 +491,76 @@ export default function Dashboard() {
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
-              {tanks.map((tank) => (
-                <Card key={tank.id}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle>{tank.name}</CardTitle>
-                      <Badge variant={tank.qrCode.isPaid ? "default" : "secondary"}>
-                        {tank.qrCode.isPaid ? "Active" : "Payment Pending"}
-                      </Badge>
-                    </div>
-                    <CardDescription>
-                      {tank.type} • {tank.capacity}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Location:</span>
-                        <span>{tank.location}</span>
+              {tanks.length > 0 ? (
+                tanks.map((tank) => (
+                  <Card key={tank.id}>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle>{tank.name}</CardTitle>
+                        <Badge variant={tank.qrCode.isPaid ? "default" : "secondary"}>
+                          {tank.qrCode.isPaid ? "Active" : "Payment Pending"}
+                        </Badge>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">QR Code:</span>
-                        <span className="font-mono">{tank.qrCode.code}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Last Cleaned:</span>
-                        <span>{tank.lastCleanedDate || 'Never'}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Next Due:</span>
-                        <span className={tank.nextDueDate ? "text-orange-600" : "text-gray-500"}>
-                          {tank.nextDueDate || 'Not scheduled'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Hygiene Score:</span>
-                        <div className="flex items-center">
-                          <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                          <span>{tank.hygieneScore || 'N/A'}</span>
+                      <CardDescription>
+                        {tank.type} • {tank.capacity}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Location:</span>
+                          <span>{tank.location}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">QR Code:</span>
+                          <span className="font-mono">{tank.qrCode.code}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Last Cleaned:</span>
+                          <span>{tank.lastCleanedDate || 'Never'}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Next Due:</span>
+                          <span className={tank.nextDueDate ? "text-orange-600" : "text-gray-500"}>
+                            {tank.nextDueDate || 'Not scheduled'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Hygiene Score:</span>
+                          <div className="flex items-center">
+                            <Star className="w-4 h-4 text-yellow-500 mr-1" />
+                            <span>{tank.hygieneScore || 'N/A'}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="mt-4 flex space-x-2">
-                      <Button size="sm" variant="outline" className="flex-1" asChild>
-                        <Link href={`/tanks/${tank.id}`}>
-                          View Details
-                        </Link>
-                      </Button>
-                      <Button size="sm" className="flex-1" asChild>
-                        <Link href={`/bookings/new?tankId=${tank.id}`}>
-                          Book Cleaning
-                        </Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      <div className="mt-4 flex space-x-2">
+                        <Button size="sm" variant="outline" className="flex-1" asChild>
+                          <Link href={`/tanks/${tank.id}`}>
+                            View Details
+                          </Link>
+                        </Button>
+                        <Button size="sm" className="flex-1" asChild>
+                          <Link href={`/bookings/new?tankId=${tank.id}`}>
+                            Book Cleaning
+                          </Link>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <div className="col-span-2 text-center py-12">
+                  <Droplets className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No tanks registered yet</h3>
+                  <p className="text-gray-600 mb-6">Add your first water tank to start tracking cleaning schedules</p>
+                  <Link href="/tanks/new">
+                    <Button size="lg">
+                      <Plus className="w-5 h-5 mr-2" />
+                      Add Your First Tank
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </div>
           </TabsContent>
 
@@ -543,28 +574,36 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {cleaningHistory.map((record) => (
-                    <div key={record.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                          <CheckCircle className="w-5 h-5 text-green-600" />
+                  {cleaningHistory.length > 0 ? (
+                    cleaningHistory.map((record) => (
+                      <div key={record.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            <CheckCircle className="w-5 h-5 text-green-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium">{record.cleaningType} Cleaning</h4>
+                            <p className="text-sm text-gray-600">
+                              By {record.cleaner.user.name} • {record.cleanedAt}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="font-medium">{record.cleaningType} Cleaning</h4>
-                          <p className="text-sm text-gray-600">
-                            By {record.cleaner.user.name} • {record.cleanedAt}
-                          </p>
+                        <div className="text-right">
+                          <div className="flex items-center">
+                            <Star className="w-4 h-4 text-yellow-500 mr-1" />
+                            <span className="font-medium">{record.hygieneScore}</span>
+                          </div>
+                          <p className="text-sm text-gray-600">Hygiene Score</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="flex items-center">
-                          <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                          <span className="font-medium">{record.hygieneScore}</span>
-                        </div>
-                        <p className="text-sm text-gray-600">Hygiene Score</p>
-                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <History className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No cleaning history</h3>
+                      <p className="text-gray-600">Your tank cleaning records will appear here once you schedule your first cleaning</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </CardContent>
             </Card>
