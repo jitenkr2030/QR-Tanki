@@ -2,30 +2,28 @@
 
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { 
-  Droplets, 
-  QrCode, 
-  Calendar, 
-  Plus, 
-  History, 
-  Settings,
-  LogOut,
-  Home,
+import {
+  Droplets,
+  QrCode,
+  Calendar,
+  Plus,
   CreditCard,
-  Shield,
   Star,
   Clock,
   CheckCircle,
-  AlertTriangle,
-  Wifi,
   WifiOff,
-  RefreshCw
+  RefreshCw,
+  Wallet,
+  MapPin,
+  ScanLine,
+  HelpCircle,
+  LogOut,
 } from "lucide-react"
 import Link from "next/link"
 import { signOut } from "next-auth/react"
@@ -33,8 +31,7 @@ import { NotificationCenter } from "@/components/notifications"
 import { MobileNav } from "@/components/mobile-nav"
 import { OfflineStatusIndicator } from "@/components/offline-status-indicator"
 import { ProfileDropdown } from "@/components/profile-dropdown"
-import { useOffline, useCachedData } from "@/lib/offline/hooks"
-import { localStorageCache } from "@/lib/offline/storage"
+import { useOffline } from "@/lib/offline/hooks"
 
 interface Tank {
   id: string
@@ -70,122 +67,56 @@ export default function Dashboard() {
   const [tanks, setTanks] = useState<Tank[]>([])
   const [cleaningHistory, setCleaningHistory] = useState<CleaningRecord[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // Use cached data for tanks
-  const { 
-    data: cachedTanks, 
-    isLoading: tanksLoading, 
-    error: tanksError,
-    refresh: refreshTanks 
-  } = useCachedData<Tank[]>(
-    'dashboard-tanks',
-    async () => {
-      // Mock API call
-      return [
-        {
-          id: "1",
-          name: "Main Water Tank",
-          type: "Overhead",
-          capacity: "1000 Liters",
-          location: "Rooftop - Building A",
-          lastCleanedDate: "2024-01-15",
-          nextDueDate: "2024-02-15",
-          hygieneScore: 4.5,
-          qrCode: {
-            code: "QT-123456",
-            isPaid: true
-          }
-        },
-        {
-          id: "2", 
-          name: "Backup Tank",
-          type: "Underground",
-          capacity: "500 Liters",
-          location: "Backyard",
-          lastCleanedDate: "2023-12-20",
-          nextDueDate: "2024-01-20",
-          hygieneScore: 3.8,
-          qrCode: {
-            code: "QT-789012",
-            isPaid: true
-          }
-        }
-      ]
-    }
-  )
-
-  // Use cached data for cleaning history
-  const { 
-    data: cachedHistory, 
-    isLoading: historyLoading, 
-    refresh: refreshHistory 
-  } = useCachedData<CleaningRecord[]>(
-    'dashboard-history',
-    async () => {
-      // Mock API call
-      return [
-        {
-          id: "1",
-          cleaningType: "BASIC",
-          cleanedAt: "2024-01-15",
-          hygieneScore: 4.5,
-          cleaner: {
-            user: {
-              name: "Raj Kumar"
-            }
-          }
-        },
-        {
-          id: "2",
-          cleaningType: "DEEP", 
-          cleanedAt: "2023-12-20",
-          hygieneScore: 4.2,
-          cleaner: {
-            user: {
-              name: "Amit Singh"
-            }
-          }
-        }
-      ]
-    }
-  )
-
-  useEffect(() => {
-    if (status === "loading") return
-    
-    if (!session) {
-      router.push('/auth/signin')
-      return
-    }
-
-    if (session.user.role !== 'USER') {
-      router.push(session.user.role === 'ADMIN' ? '/admin' : '/cleaner')
-      return
-    }
-
-    // Update state with cached data
-    setTanks(cachedTanks || [])
-    setCleaningHistory(cachedHistory || [])
-    setLoading(false)
-  }, [session, status, router, cachedTanks, cachedHistory])
-
-  // Handle manual refresh
-  const handleRefresh = async () => {
-    setLoading(true)
+  const fetchTanks = useCallback(async () => {
     try {
-      await refreshTanks()
-      await refreshHistory()
-      // Update state with fresh data
-      setTanks(cachedTanks || [])
-      setCleaningHistory(cachedHistory || [])
+      const res = await fetch("/api/tanks")
+      if (!res.ok) throw new Error("Failed to fetch tanks")
+      const data = await res.json()
+      setTanks(Array.isArray(data) ? data : data.tanks ?? [])
+    } catch (err) {
+      console.error("Error fetching tanks:", err)
+      setError("Could not load tank data. Please try again.")
+    }
+  }, [])
+
+  const fetchHistory = useCallback(async () => {
+    try {
+      const res = await fetch("/api/bookings?history=true")
+      if (!res.ok) throw new Error("Failed to fetch history")
+      const data = await res.json()
+      setCleaningHistory(Array.isArray(data) ? data : data.bookings ?? [])
+    } catch (err) {
+      console.error("Error fetching cleaning history:", err)
+    }
+  }, [])
+
+  const fetchAllData = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      await Promise.all([fetchTanks(), fetchHistory()])
     } finally {
       setLoading(false)
     }
-  }
+  }, [fetchTanks, fetchHistory])
 
-  const handleSignOut = () => {
-    signOut({ callbackUrl: '/' })
-  }
+  useEffect(() => {
+    if (status === "loading") return
+    if (!session) {
+      router.push("/auth/signin")
+      return
+    }
+    if (session.user.role !== "USER") {
+      router.push(session.user.role === "ADMIN" ? "/admin" : "/cleaner")
+      return
+    }
+    fetchAllData()
+  }, [session, status, router, fetchAllData])
+
+  const handleRefresh = () => fetchAllData()
+  const handleSignOut = () => signOut({ callbackUrl: "/" })
 
   if (status === "loading" || loading) {
     return (
@@ -195,14 +126,36 @@ export default function Dashboard() {
     )
   }
 
-  if (!session) {
-    return null
-  }
+  if (!session) return null
+
+  const avgHygiene =
+    tanks.length > 0
+      ? (
+          tanks.reduce((sum, t) => sum + (t.hygieneScore || 0), 0) / tanks.length
+        ).toFixed(1)
+      : null
+
+  const nextDue = tanks
+    .filter((t) => t.nextDueDate)
+    .sort(
+      (a, b) =>
+        new Date(a.nextDueDate!).getTime() - new Date(b.nextDueDate!).getTime()
+    )[0]
+
+  const daysUntilDue = nextDue?.nextDueDate
+    ? Math.max(
+        0,
+        Math.ceil(
+          (new Date(nextDue.nextDueDate).getTime() - Date.now()) /
+            (1000 * 60 * 60 * 24)
+        )
+      )
+    : null
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-50 safe-area-padding">
+      <header className="bg-white border-b sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -210,33 +163,57 @@ export default function Dashboard() {
                 <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                   <Droplets className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-xl font-bold text-gray-900 hidden sm:block">QR Tanki</span>
-                <span className="text-lg font-bold text-gray-900 sm:hidden">QT</span>
+                <span className="text-xl font-bold text-gray-900 hidden sm:block">
+                  QR Tanki
+                </span>
+                <span className="text-lg font-bold text-gray-900 sm:hidden">
+                  QT
+                </span>
               </Link>
               <nav className="hidden md:flex items-center space-x-6">
-                <Link href="/dashboard" className="text-blue-600 font-medium">Dashboard</Link>
-                <Link href="/tanks" className="text-gray-600 hover:text-gray-900">My Tanks</Link>
-                <Link href="/bookings" className="text-gray-600 hover:text-gray-900">Bookings</Link>
-                <Link href="/subscriptions" className="text-gray-600 hover:text-gray-900">Subscriptions</Link>
+                <Link href="/dashboard" className="text-blue-600 font-medium">
+                  Dashboard
+                </Link>
+                <Link href="/tanks" className="text-gray-600 hover:text-gray-900">
+                  My Tanks
+                </Link>
+                <Link href="/bookings" className="text-gray-600 hover:text-gray-900">
+                  Bookings
+                </Link>
+                <Link
+                  href="/subscriptions"
+                  className="text-gray-600 hover:text-gray-900"
+                >
+                  Subscriptions
+                </Link>
+                <Link href="/wallet" className="text-gray-600 hover:text-gray-900">
+                  Wallet
+                </Link>
               </nav>
             </div>
-            
+
             <div className="flex items-center space-x-2 sm:space-x-4">
               <MobileNav userId={session.user.id} />
               <NotificationCenter userId={session.user.id} />
               <OfflineStatusIndicator />
-              <Button variant="ghost" size="sm" className="hidden sm:flex">
-                <Settings className="w-4 h-4" />
-              </Button>
-              
-              {/* Profile Dropdown */}
-              <ProfileDropdown 
+              <Link href="/wallet" className="hidden sm:block">
+                <Button variant="ghost" size="sm">
+                  <Wallet className="w-4 h-4" />
+                </Button>
+              </Link>
+
+              <ProfileDropdown
                 userName={session.user.name}
                 userEmail={session.user.email}
                 userRole={session.user.role}
               />
-              
-              <Button variant="ghost" size="sm" className="hidden sm:flex" onClick={handleSignOut}>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hidden sm:flex"
+                onClick={handleSignOut}
+              >
                 <LogOut className="w-4 h-4" />
               </Button>
             </div>
@@ -246,6 +223,19 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
+        {/* Error Alert */}
+        {error && (
+          <Alert className="mb-6 border-red-200 bg-red-50">
+            <AlertDescription className="flex items-center justify-between">
+              <span>{error}</span>
+              <Button size="sm" variant="outline" onClick={handleRefresh}>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Retry
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Offline Notification */}
         {isOffline && (
           <Alert className="mb-6 border-orange-200 bg-orange-50">
@@ -253,8 +243,11 @@ export default function Dashboard() {
             <AlertDescription>
               <div className="flex items-center justify-between">
                 <div>
-                  <strong>You're offline</strong>
-                  <span className="ml-2">Some features may not be available. Your data will be saved locally and synced when you're back online.</span>
+                  <strong>You're offline.</strong>
+                  <span className="ml-2">
+                    Some features may be limited. Data will sync when you're back
+                    online.
+                  </span>
                 </div>
                 <Button size="sm" onClick={syncData} disabled={!isOnline}>
                   <RefreshCw className="w-4 h-4 mr-2" />
@@ -276,70 +269,80 @@ export default function Dashboard() {
                 Manage your water tanks and track cleaning history
               </p>
             </div>
-            <div className="flex items-center space-x-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleRefresh}
-                disabled={loading}
-              >
-                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={loading}
+            >
+              <RefreshCw
+                className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`}
+              />
+              Refresh
+            </Button>
           </div>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
-          <Card className="col-span-1">
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Tanks</CardTitle>
               <Droplets className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{tanks.length}</div>
-              <p className="text-xs text-muted-foreground">
-                Registered tanks
-              </p>
+              <p className="text-xs text-muted-foreground">Registered tanks</p>
             </CardContent>
           </Card>
 
-          <Card className="col-span-1">
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Cleanings This Month</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Cleanings
+              </CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">2</div>
-              <p className="text-xs text-muted-foreground">
-                +1 from last month
-              </p>
+              <div className="text-2xl font-bold">{cleaningHistory.length}</div>
+              <p className="text-xs text-muted-foreground">All time</p>
             </CardContent>
           </Card>
 
-          <Card className="col-span-1">
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg Hygiene Score</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Avg Hygiene Score
+              </CardTitle>
               <Star className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">4.2</div>
+              <div className="text-2xl font-bold">
+                {avgHygiene ?? "N/A"}
+              </div>
               <p className="text-xs text-muted-foreground">
-                Good condition
+                {avgHygiene !== null && Number(avgHygiene) >= 4
+                  ? "Good condition"
+                  : avgHygiene !== null
+                    ? "Needs attention"
+                    : "No data yet"}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="col-span-1">
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Next Cleaning Due</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Next Cleaning Due
+              </CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">5 days</div>
+              <div className="text-2xl font-bold">
+                {daysUntilDue !== null ? `${daysUntilDue} days` : "N/A"}
+              </div>
               <p className="text-xs text-muted-foreground">
-                Main Water Tank
+                {nextDue?.name || "No upcoming cleaning"}
               </p>
             </CardContent>
           </Card>
@@ -352,9 +355,10 @@ export default function Dashboard() {
             <TabsTrigger value="history">Cleaning History</TabsTrigger>
           </TabsList>
 
+          {/* ── Overview Tab ── */}
           <TabsContent value="overview" className="space-y-6">
             {/* Quick Actions */}
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-4 gap-6">
               <Card className="hover:shadow-lg transition-shadow cursor-pointer">
                 <CardHeader>
                   <CardTitle className="flex items-center">
@@ -381,9 +385,7 @@ export default function Dashboard() {
                     <Calendar className="w-5 h-5 mr-2" />
                     Book Cleaning
                   </CardTitle>
-                  <CardDescription>
-                    Schedule a cleaning service
-                  </CardDescription>
+                  <CardDescription>Schedule a cleaning service</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Link href="/bookings/new">
@@ -401,9 +403,7 @@ export default function Dashboard() {
                     <CreditCard className="w-5 h-5 mr-2" />
                     Subscription
                   </CardTitle>
-                  <CardDescription>
-                    Manage your cleaning plans
-                  </CardDescription>
+                  <CardDescription>Manage your cleaning plans</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Link href="/subscriptions">
@@ -414,54 +414,126 @@ export default function Dashboard() {
                   </Link>
                 </CardContent>
               </Card>
+
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Wallet className="w-5 h-5 mr-2" />
+                    Wallet
+                  </CardTitle>
+                  <CardDescription>Check balance and payments</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Link href="/wallet">
+                    <Button className="w-full" variant="outline">
+                      <Wallet className="w-4 h-4 mr-2" />
+                      Open Wallet
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Secondary Quick Links */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Link href="/scan">
+                <Button variant="ghost" className="w-full justify-start">
+                  <ScanLine className="w-4 h-4 mr-2" />
+                  Scan QR
+                </Button>
+              </Link>
+              <Link href="/payment">
+                <Button variant="ghost" className="w-full justify-start">
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  Payments
+                </Button>
+              </Link>
+              <Link href="/help">
+                <Button variant="ghost" className="w-full justify-start">
+                  <HelpCircle className="w-4 h-4 mr-2" />
+                  Help Center
+                </Button>
+              </Link>
+              <Link href="/contact">
+                <Button variant="ghost" className="w-full justify-start">
+                  <MapPin className="w-4 h-4 mr-2" />
+                  Contact Us
+                </Button>
+              </Link>
             </div>
 
             {/* Recent Tanks */}
             <Card>
               <CardHeader>
                 <CardTitle>Recent Tanks</CardTitle>
-                <CardDescription>
-                  Your registered water tanks
-                </CardDescription>
+                <CardDescription>Your registered water tanks</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {tanks.slice(0, 3).map((tank) => (
-                    <div key={tank.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <Droplets className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <h4 className="font-medium">{tank.name}</h4>
-                          <p className="text-sm text-gray-600">{tank.type} • {tank.capacity}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <Badge 
-                          variant={tank.hygieneScore && tank.hygieneScore >= 4 ? "default" : "secondary"}
-                          className="mb-2"
+                {tanks.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Droplets className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500 mb-4">
+                      No tanks registered yet
+                    </p>
+                    <Link href="/tanks/new">
+                      <Button>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Your First Tank
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <>
+                    <div className="space-y-4">
+                      {tanks.slice(0, 3).map((tank) => (
+                        <div
+                          key={tank.id}
+                          className="flex items-center justify-between p-4 border rounded-lg"
                         >
-                          Score: {tank.hygieneScore || 'N/A'}
-                        </Badge>
-                        <p className="text-sm text-gray-600">
-                          Due: {tank.nextDueDate || 'Not scheduled'}
-                        </p>
-                      </div>
+                          <div className="flex items-center space-x-4">
+                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                              <Droplets className="w-5 h-5 text-blue-600" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium">{tank.name}</h4>
+                              <p className="text-sm text-gray-600">
+                                {tank.type}{" "}
+                                {tank.capacity ? `• ${tank.capacity}` : ""}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <Badge
+                              variant={
+                                tank.hygieneScore && tank.hygieneScore >= 4
+                                  ? "default"
+                                  : "secondary"
+                              }
+                              className="mb-2"
+                            >
+                              Score: {tank.hygieneScore || "N/A"}
+                            </Badge>
+                            <p className="text-sm text-gray-600">
+                              Due: {tank.nextDueDate || "Not scheduled"}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-                <div className="mt-4">
-                  <Link href="/tanks">
-                    <Button variant="outline" className="w-full">
-                      View All Tanks
-                    </Button>
-                  </Link>
-                </div>
+                    <div className="mt-4">
+                      <Link href="/tanks">
+                        <Button variant="outline" className="w-full">
+                          View All Tanks
+                        </Button>
+                      </Link>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
+          {/* ── Tanks Tab ── */}
           <TabsContent value="tanks" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold">My Tanks</h2>
@@ -473,66 +545,107 @@ export default function Dashboard() {
               </Link>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
-              {tanks.map((tank) => (
-                <Card key={tank.id}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle>{tank.name}</CardTitle>
-                      <Badge variant={tank.qrCode.isPaid ? "default" : "secondary"}>
-                        {tank.qrCode.isPaid ? "Active" : "Payment Pending"}
-                      </Badge>
-                    </div>
-                    <CardDescription>
-                      {tank.type} • {tank.capacity}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Location:</span>
-                        <span>{tank.location}</span>
+            {tanks.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <Droplets className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    No tanks yet
+                  </h3>
+                  <p className="text-gray-500 mb-6">
+                    Register your first water tank to get started.
+                  </p>
+                  <Link href="/tanks/new">
+                    <Button>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Your First Tank
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid md:grid-cols-2 gap-6">
+                {tanks.map((tank) => (
+                  <Card key={tank.id}>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle>{tank.name}</CardTitle>
+                        <Badge
+                          variant={
+                            tank.qrCode.isPaid ? "default" : "secondary"
+                          }
+                        >
+                          {tank.qrCode.isPaid
+                            ? "Active"
+                            : "Payment Pending"}
+                        </Badge>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">QR Code:</span>
-                        <span className="font-mono">{tank.qrCode.code}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Last Cleaned:</span>
-                        <span>{tank.lastCleanedDate || 'Never'}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Next Due:</span>
-                        <span className={tank.nextDueDate ? "text-orange-600" : "text-gray-500"}>
-                          {tank.nextDueDate || 'Not scheduled'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Hygiene Score:</span>
-                        <div className="flex items-center">
-                          <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                          <span>{tank.hygieneScore || 'N/A'}</span>
+                      <CardDescription>
+                        {tank.type}{" "}
+                        {tank.capacity ? `• ${tank.capacity}` : ""}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Location:</span>
+                          <span>{tank.location}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">QR Code:</span>
+                          <span className="font-mono">
+                            {tank.qrCode.code}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Last Cleaned:</span>
+                          <span>{tank.lastCleanedDate || "Never"}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Next Due:</span>
+                          <span
+                            className={
+                              tank.nextDueDate
+                                ? "text-orange-600"
+                                : "text-gray-500"
+                            }
+                          >
+                            {tank.nextDueDate || "Not scheduled"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Hygiene Score:</span>
+                          <div className="flex items-center">
+                            <Star className="w-4 h-4 text-yellow-500 mr-1" />
+                            <span>{tank.hygieneScore || "N/A"}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="mt-4 flex space-x-2">
-                      <Button size="sm" variant="outline" className="flex-1" asChild>
-                        <Link href={`/tanks/${tank.id}`}>
-                          View Details
-                        </Link>
-                      </Button>
-                      <Button size="sm" className="flex-1" asChild>
-                        <Link href={`/bookings/new?tankId=${tank.id}`}>
-                          Book Cleaning
-                        </Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      <div className="mt-4 flex space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1"
+                          asChild
+                        >
+                          <Link href={`/tanks/${tank.id}`}>
+                            View Details
+                          </Link>
+                        </Button>
+                        <Button size="sm" className="flex-1" asChild>
+                          <Link href={`/bookings/new?tankId=${tank.id}`}>
+                            Book Cleaning
+                          </Link>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
+          {/* ── History Tab ── */}
           <TabsContent value="history" className="space-y-6">
             <Card>
               <CardHeader>
@@ -542,30 +655,55 @@ export default function Dashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {cleaningHistory.map((record) => (
-                    <div key={record.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                          <CheckCircle className="w-5 h-5 text-green-600" />
+                {cleaningHistory.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500 mb-4">
+                      No cleaning history yet
+                    </p>
+                    <Link href="/bookings/new">
+                      <Button>
+                        <Calendar className="w-4 h-4 mr-2" />
+                        Book Your First Cleaning
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {cleaningHistory.map((record) => (
+                      <div
+                        key={record.id}
+                        className="flex items-center justify-between p-4 border rounded-lg"
+                      >
+                        <div className="flex items-center space-x-4">
+                          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            <CheckCircle className="w-5 h-5 text-green-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium">
+                              {record.cleaningType} Cleaning
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              By {record.cleaner.user.name} •{" "}
+                              {record.cleanedAt}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="font-medium">{record.cleaningType} Cleaning</h4>
+                        <div className="text-right">
+                          <div className="flex items-center">
+                            <Star className="w-4 h-4 text-yellow-500 mr-1" />
+                            <span className="font-medium">
+                              {record.hygieneScore}
+                            </span>
+                          </div>
                           <p className="text-sm text-gray-600">
-                            By {record.cleaner.user.name} • {record.cleanedAt}
+                            Hygiene Score
                           </p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="flex items-center">
-                          <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                          <span className="font-medium">{record.hygieneScore}</span>
-                        </div>
-                        <p className="text-sm text-gray-600">Hygiene Score</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
