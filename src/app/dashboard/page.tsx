@@ -70,8 +70,9 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null)
 
   const fetchTanks = useCallback(async () => {
+    if (!session?.user?.id) return
     try {
-      const res = await fetch("/api/tanks")
+      const res = await fetch(`/api/tanks?userId=${session.user.id}`)
       if (!res.ok) throw new Error("Failed to fetch tanks")
       const data = await res.json()
       setTanks(Array.isArray(data) ? data : data.tanks ?? [])
@@ -79,7 +80,7 @@ export default function Dashboard() {
       console.error("Error fetching tanks:", err)
       setError("Could not load tank data. Please try again.")
     }
-  }, [])
+  }, [session?.user?.id])
 
   const fetchHistory = useCallback(async () => {
     try {
@@ -243,9 +244,9 @@ export default function Dashboard() {
             <AlertDescription>
               <div className="flex items-center justify-between">
                 <div>
-                  <strong>You're offline.</strong>
+                  <strong>You{"'"}re offline.</strong>
                   <span className="ml-2">
-                    Some features may be limited. Data will sync when you're back
+                    Some features may be limited. Data will sync when you{"'"}re back
                     online.
                   </span>
                 </div>
