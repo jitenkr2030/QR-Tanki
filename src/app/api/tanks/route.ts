@@ -157,11 +157,15 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get('userId')
 
     if (!userId) {
+      const allTanks = await prisma.tank.findMany({
+        include: { qrCode: true },
+        orderBy: { createdAt: 'desc' }
+      })
       return NextResponse.json({
-        success: false,
-        error: 'Missing userId parameter',
-        message: 'Please provide userId to fetch tanks'
-      }, { status: 400 })
+        success: true,
+        tanks: allTanks,
+        count: allTanks.length
+      })
     }
 
     const tanks = await prisma.tank.findMany({

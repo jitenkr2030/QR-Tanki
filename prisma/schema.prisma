@@ -157,6 +157,7 @@ model Subscription {
   userId            String
   plan              SubscriptionPlan
   amount            Float
+  billingCycle      String?          @default("monthly")
   startDate         DateTime
   endDate           DateTime
   isActive          Boolean          @default(true)
