@@ -15,6 +15,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport = {
+  colorScheme: "light" as const,
+}
+
 export const metadata: Metadata = {
   metadataBase: new URL('https://qrtanki.com'),
   title: {
@@ -64,7 +68,6 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.json",
   themeColor: "#2563eb",
-  colorScheme: "light",
   appleWebApp: {
     capable: true,
     title: "QR Tanki",

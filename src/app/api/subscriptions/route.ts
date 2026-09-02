@@ -90,7 +90,6 @@ export async function POST(request: NextRequest) {
         subscriptionId: subscription.id,
         amount,
         type: "SUBSCRIPTION",
-        billingCycle,
         status: "PENDING"
       }
     })
