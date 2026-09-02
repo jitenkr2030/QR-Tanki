@@ -74,7 +74,6 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         plan: plan as SubscriptionPlan,
         amount,
-        billingCycle,
         startDate,
         endDate,
         isActive: false, // Will be activated after payment
