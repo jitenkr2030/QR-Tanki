@@ -63,7 +63,6 @@ export async function POST(request: NextRequest) {
 
     // Always use yearly billing
     const amount = selectedPlan.yearlyAmount
-    const billingCycle = 'yearly'
     const startDate = new Date()
     const endDate = new Date()
     endDate.setFullYear(endDate.getFullYear() + 1)
