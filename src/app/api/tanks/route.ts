@@ -83,22 +83,25 @@ export async function POST(request: NextRequest) {
 
     // Create tank with QR code
     const tank = await prisma.tank.create({
-      data: {
-        name,
-        type: tankType,
-        capacity,
-        location,
-        userId,
-        hygieneScore: 0,
-        isActive: true,
-        qrCode: {
-          create: {
-            code: qrCode,
-            isGenerated: true,
-            isPaid: false, // Will be updated when payment is made
-          }
-        }
-      },
+  data: {
+    name,
+    type: tankType,
+    capacity,
+    location,
+    hygieneScore: 0,
+    isActive: true,
+    user: {
+      connect: { id: userId }
+    },
+    qrCode: {
+      create: {
+        code: qrCode,
+        isGenerated: true,
+        isPaid: false,
+      }
+    }
+  },
+       
       include: {
         qrCode: true
       }
